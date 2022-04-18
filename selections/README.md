@@ -1,2 +1,2 @@
-# Marker
+# Selections
 Buffer selections management
