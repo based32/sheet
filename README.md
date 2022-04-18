@@ -1,2 +1,2 @@
 # sheet
-Home-made editor
+Concise text buffer
