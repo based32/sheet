@@ -7,7 +7,7 @@ mod insert;
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 
 /// Coordinates in a document.
-#[derive(Debug, PartialEq, Eq, Ord)]
+#[derive(Debug, PartialEq, Eq, Ord, Clone)]
 pub struct Position {
     line: usize,
     column: usize,
