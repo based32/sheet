@@ -22,6 +22,13 @@ impl PartialOrd for Position {
     }
 }
 
+impl Position {
+    /// Creates new position with `line` and `column`.
+    pub fn new(line: usize, column: usize) -> Self {
+        Position { line, column }
+    }
+}
+
 /// Direction of selections in the selection storage.
 #[derive(Debug, Clone, Copy)]
 pub enum SelectionDirection {
@@ -37,6 +44,22 @@ pub struct Selection {
     from: Position,
     to: Position,
     link: RBTreeLink,
+}
+
+impl PartialEq for Selection {
+    fn eq(&self, other: &Self) -> bool {
+        self.from == other.from && self.to == other.to
+    }
+}
+
+impl Default for Selection {
+    fn default() -> Self {
+        Selection {
+            from: Position::new(0, 0),
+            to: Position::new(0, 1),
+            link: Default::default(),
+        }
+    }
 }
 
 impl Selection {

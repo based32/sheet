@@ -47,3 +47,32 @@ impl SelectionStorage {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_insertion_no_collision() {
+        let mut storage = SelectionStorage::new();
+        storage.insert(Position::new(1, 3), Position::new(3, 7), false);
+
+        let mut iter = storage.iter_all();
+        let expected = [
+            Selection {
+                from: Position::new(0, 0),
+                to: Position::new(0, 1),
+                ..Default::default()
+            },
+            Selection {
+                from: Position::new(1, 3),
+                to: Position::new(3, 7),
+                ..Default::default()
+            },
+        ];
+        for right in expected.iter() {
+            assert_eq!(iter.next(), Some(right));
+        }
+        assert!(iter.next().is_none());
+    }
+}
