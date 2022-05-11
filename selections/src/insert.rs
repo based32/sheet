@@ -13,7 +13,7 @@ impl SelectionStorage {
         // Check left neighbor
         let mut left_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&from));
         if let Some(left) = left_collision_cursor.get() {
-            if left.to >= from {
+            if left.from <= from && left.to >= from {
                 // Collision with left neighbor
                 if !replace {
                     new_from = Some(left.from.clone());
@@ -22,9 +22,9 @@ impl SelectionStorage {
             }
         }
         // Check right neighbor
-        let mut right_collision_cursor = self.tree.lower_bound_mut(Bound::Included(&to));
+        let mut right_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&to));
         if let Some(right) = right_collision_cursor.get() {
-            if right.from <= to {
+            if right.from <= to && right.to >= to {
                 // Collision with right neighbor
                 if !replace {
                     new_to = Some(right.to.clone());
@@ -75,4 +75,104 @@ mod tests {
         }
         assert!(iter.next().is_none());
     }
+
+    #[test]
+    fn test_insertion_collision_left_merge() {
+        let mut storage = SelectionStorage::new();
+        storage.insert(Position::new(1, 3), Position::new(3, 7), false);
+        storage.insert(Position::new(1, 4), Position::new(4, 5), false);
+
+        let mut iter = storage.iter_all();
+        let expected = [
+            Selection {
+                from: Position::new(0, 0),
+                to: Position::new(0, 1),
+                ..Default::default()
+            },
+            Selection {
+                from: Position::new(1, 3),
+                to: Position::new(4, 5),
+                ..Default::default()
+            },
+        ];
+        for right in expected.iter() {
+            assert_eq!(iter.next(), Some(right));
+        }
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_insertion_collision_left_replace() {
+        let mut storage = SelectionStorage::new();
+        storage.insert(Position::new(1, 3), Position::new(3, 7), false);
+        storage.insert(Position::new(1, 4), Position::new(4, 5), true);
+
+        let mut iter = storage.iter_all();
+        let expected = [
+            Selection {
+                from: Position::new(0, 0),
+                to: Position::new(0, 1),
+                ..Default::default()
+            },
+            Selection {
+                from: Position::new(1, 4),
+                to: Position::new(4, 5),
+                ..Default::default()
+            },
+        ];
+        for right in expected.iter() {
+            assert_eq!(iter.next(), Some(right));
+        }
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_insertion_collision_right_merge() {
+        let mut storage = SelectionStorage::new();
+        storage.insert(Position::new(1, 3), Position::new(3, 7), false);
+        storage.insert(Position::new(0, 10), Position::new(1, 5), false);
+
+        let mut iter = storage.iter_all();
+        let expected = [
+            Selection {
+                from: Position::new(0, 0),
+                to: Position::new(0, 1),
+                ..Default::default()
+            },
+            Selection {
+                from: Position::new(0, 10),
+                to: Position::new(3, 7),
+                ..Default::default()
+            },
+        ];
+        for right in expected.iter() {
+            assert_eq!(iter.next(), Some(right));
+        }
+        assert!(iter.next().is_none());
+    }
+
+    // #[test]
+    // fn test_insertion_collision_right_replace() {
+    //     let mut storage = SelectionStorage::new();
+    //     storage.insert(Position::new(1, 3), Position::new(3, 7), false);
+    //     storage.insert(Position::new(0, 10), Position::new(1, 5), true);
+
+    //     let mut iter = storage.iter_all();
+    //     let expected = [
+    //         Selection {
+    //             from: Position::new(0, 0),
+    //             to: Position::new(0, 1),
+    //             ..Default::default()
+    //         },
+    //         Selection {
+    //             from: Position::new(0, 10),
+    //             to: Position::new(1, 5),
+    //             ..Default::default()
+    //         },
+    //     ];
+    //     for right in expected.iter() {
+    //         assert_eq!(iter.next(), Some(right));
+    //     }
+    //     assert!(iter.next().is_none());
+    // }
 }
