@@ -4,6 +4,8 @@
 
 mod get;
 mod insert;
+mod util;
+
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 
 /// Coordinates in a document.
@@ -95,7 +97,7 @@ pub struct SelectionStorage {
 }
 
 impl SelectionStorage {
-    /// Crate selection storage with an initial selection in the document
+    /// Create selection storage with an initial selection in the document
     /// beginning.
     pub fn new() -> Self {
         let mut tree = RBTree::new(SelectionAdapter::new());
@@ -104,6 +106,16 @@ impl SelectionStorage {
             to: Position { line: 0, column: 1 },
             link: RBTreeLink::new(),
         }));
+        SelectionStorage {
+            tree,
+            direction: SelectionDirection::Forward,
+        }
+    }
+
+    #[cfg(test)]
+    /// Create selection storage with no default selection.
+    fn new_empty() -> Self {
+        let tree = RBTree::new(SelectionAdapter::new());
         SelectionStorage {
             tree,
             direction: SelectionDirection::Forward,
