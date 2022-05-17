@@ -4,6 +4,7 @@
 
 mod get;
 mod insert;
+mod movements;
 mod util;
 
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};

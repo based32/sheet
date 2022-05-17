@@ -110,6 +110,36 @@ mod tests {
     }
 
     #[test]
+    fn test_collision_left_merge_cornercase() {
+        selections_test! {
+            [(1, 3) - (3, 7)],
+            storage -> {
+                storage.insert(Position::new(3, 7), Position::new(4, 5));
+                storage.insert(Position::new(4, 6), Position::new(4, 8));
+            },
+            [
+                (1, 3) - (4, 5),
+                (4, 6) - (4, 8)
+            ]
+        };
+    }
+
+    #[test]
+    fn test_collision_left_replace_cornercase() {
+        selections_test! {
+            [(1, 3) - (3, 7)],
+            storage -> {
+                storage.insert_replacing(Position::new(3, 7), Position::new(4, 5));
+                storage.insert_replacing(Position::new(4, 6), Position::new(4, 8));
+            },
+            [
+                (3, 7) - (4, 5),
+                (4, 6) - (4, 8)
+            ]
+        };
+    }
+
+    #[test]
     fn test_collision_right_merge() {
         selections_test! {
             [(1, 3) - (3, 7)],
