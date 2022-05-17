@@ -2,10 +2,13 @@
 
 //! Selection storage library.
 
+mod deltas;
 mod get;
 mod insert;
+mod movements;
 mod util;
 
+pub use deltas::{SelectionDelta, SelectionDeltas};
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 
 /// Coordinates in a document.
@@ -45,6 +48,7 @@ pub enum SelectionDirection {
 pub struct Selection {
     from: Position,
     to: Position,
+    direction: SelectionDirection,
     link: RBTreeLink,
 }
 
@@ -54,27 +58,55 @@ impl PartialEq for Selection {
     }
 }
 
+impl Eq for Selection {}
+
 impl Default for Selection {
     fn default() -> Self {
         Selection {
             from: Position::new(0, 0),
-            to: Position::new(0, 1),
+            to: Position::new(0, 0),
+            direction: SelectionDirection::Forward,
             link: Default::default(),
         }
     }
 }
 
 impl Selection {
+    #[cfg(test)]
+    /// Build new selection from two positions setting proper direction
+    /// depending on order.
+    fn new(mut from: Position, mut to: Position) -> Self {
+        let direction = if from > to {
+            std::mem::swap(&mut from, &mut to);
+            SelectionDirection::Backward
+        } else {
+            SelectionDirection::Forward
+        };
+        Selection {
+            from,
+            to,
+            direction,
+            ..Default::default()
+        }
+    }
+
     /// Get selection's left coordinates.
     #[inline]
     pub fn from(&self) -> &Position {
-        &self.from
+        match self.direction {
+            SelectionDirection::Forward => &self.from,
+            SelectionDirection::Backward => &self.to,
+        }
     }
 
-    /// Get selection's right coordinates.
+    /// Get selection's right coordinates (greater than or equal to its left
+    /// coordinates).
     #[inline]
     pub fn to(&self) -> &Position {
-        &self.to
+        match self.direction {
+            SelectionDirection::Forward => &self.to,
+            SelectionDirection::Backward => &self.from,
+        }
     }
 }
 
@@ -93,7 +125,6 @@ impl<'a> KeyAdapter<'a> for SelectionAdapter {
 /// Multiselection storage which guarantees no overlaps.
 pub struct SelectionStorage {
     tree: RBTree<SelectionAdapter>,
-    direction: SelectionDirection,
 }
 
 impl SelectionStorage {
@@ -101,24 +132,14 @@ impl SelectionStorage {
     /// beginning.
     pub fn new() -> Self {
         let mut tree = RBTree::new(SelectionAdapter::new());
-        tree.insert(Box::new(Selection {
-            from: Position { line: 0, column: 0 },
-            to: Position { line: 0, column: 1 },
-            link: RBTreeLink::new(),
-        }));
-        SelectionStorage {
-            tree,
-            direction: SelectionDirection::Forward,
-        }
+        tree.insert(Box::new(Selection::default()));
+        SelectionStorage { tree }
     }
 
     #[cfg(test)]
     /// Create selection storage with no default selection.
     fn new_empty() -> Self {
         let tree = RBTree::new(SelectionAdapter::new());
-        SelectionStorage {
-            tree,
-            direction: SelectionDirection::Forward,
-        }
+        SelectionStorage { tree }
     }
 }

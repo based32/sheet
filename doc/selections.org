@@ -1,0 +1,66 @@
+#+TITLE: Selections
+
+* Dramatis personae
+** Selection storage
+~SelectionStorage~ is a structure which keeps each ~Selection~ in a certain order regardless of
+its direction. Provides API to insert, remove, flip, extend and move selections --- each API
+method that changes ~SelectionStorage~ state returns ~SelectionDelta~.
+** Selection
+~Selection~ is a pair of two ~Position~ s with a ~SelectionDirection~. Coordinates might be
+equal to each other, in this case it will be selection of 1 character, or different, but ~to~
+is always after ~from~.
+** Selection direction
+~SelectionDirection~ could be ~Forward~ or ~Backward~, the former means that ~to~ position is
+considered as insert and movement position. Default direction is ~Forward~.
+** Position
+~Position~ is a pair of coordinates: line and column. The beginning of a buffer is ~(0, 0)~ and
+it will  point to a line end in case of an empty buffer. Positions could be compared, first by
+line number, then by column, thus ~(1, 3)~ is less than ~(3, 7)~.
+** Selection delta
+~SelectionDelta~ is a way to receive feedback from ~SelectionStorage~ and to use this
+information for something like redraw. Each delta represents one selection and what happened to
+it.
+
+Deltas are ordered by selections' ~from~ position, in case there are two deltas referring
+to the same ~from~ position, a deletion delta will go first.
+
+* Insertion
+Selection insertion adds yet another selection to others stored performing collision checks.
+
+If there is a collision, the selection (or many of them) with which the collision occured will be
+deleted with according ~Deleted~ delta and new selection will be inserted with ~Created~ delta.
+
+No ~Updated~ deltas should be returned on selection insertion operation.
+
+* Movement
+** Movement overview
+Movement can happen for each selection individually or for all of them at the same time and it
+comes in two flavors:
+1. movement of ~from~ or ~to~ position of each selection depending on its ~direction~ (for
+   ~Forward~ direction ~to~ position will be moved), this will look like extension/narrowing of
+   the selection;
+2. making one position equal to another depending on its ~direction~ (for ~Forward~ direction
+   ~from~ position will be changed to be equal to ~to~) and further movement of both positions,
+   direction will be reset.
+
+Usually movements provide ~Updated~ deltas, but keep in mind collisions:
+1. moved selection will be ~Updated~ and others are ~Deleted~;
+2. simultaneous movements are trickier: movement towards the end of the buffer (left to right
+   or top to bottom) treats selections closer to the beginning of the buffer as absorbers, so
+   on collision those will be ~Updated~ and other are ~Deleted~, for opposite directions
+   absorbers are those closer to the buffer end.
+
+** Position updates
+After position movement (regardless of whether it's ~from~ or ~to~ position of a selection)
+it's place falls into one of four categories:
+1. ~(0, 0)~ in an empty buffer (neither line nor newline symbol exist);
+2. ~(L, N)~ where ~L~ is the last line of a buffer and ~N~ equals a number of characters
+   on the line, so it will point to a newline, even there is no newline symbol;
+3. ~(L-1, N)~ where ~L-1~ is not the last line of a buffer and ~N~ equals a
+   number of characters on the line, this time it will point to acual newline symbol;
+4. any other pair of coordinates will point to a buffer content except newline.
+
+Movements add some amount of complexity to selections structure: a sticky column. In
+case if cursor's column index is greater than line length on vertical movement it should take
+its place on the line's end, but on subsequent vertical movements it should try to retrieve
+it's original column position if possible until it's dropped by horizontal movement.

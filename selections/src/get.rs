@@ -68,7 +68,7 @@ mod tests {
         let expected = [
             Selection {
                 from: Position::new(0, 0),
-                to: Position::new(0, 1),
+                to: Position::new(0, 0),
                 ..Default::default()
             },
             Selection {
