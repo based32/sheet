@@ -7,6 +7,8 @@ mod insert;
 mod movements;
 mod util;
 
+use std::collections::{btree_set::IntoIter, BTreeSet};
+
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 
 /// Coordinates in a document.
@@ -121,5 +123,84 @@ impl SelectionStorage {
             tree,
             direction: SelectionDirection::Forward,
         }
+    }
+}
+
+/// Info on created/deleted/updated selection.
+pub enum SelectionDelta<'a> {
+    /// Selection was created
+    Created(&'a Selection),
+    /// Selection was deleted
+    Deleted(Box<Selection>),
+    /// Selection was updated
+    Updated {
+        /// Old selection state
+        old: Box<Selection>,
+        /// New selection state
+        new: &'a Selection,
+    },
+}
+
+impl SelectionDelta<'_> {
+    /// Shortcut to get `from` coordinate required for comparison
+    fn from(&self) -> &Position {
+        match self {
+            SelectionDelta::Created(Selection { from, .. }) => from,
+            SelectionDelta::Deleted(s) | SelectionDelta::Updated { old: s, .. } => &s.from,
+        }
+    }
+}
+
+impl PartialEq for SelectionDelta<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.from() == other.from()
+    }
+}
+
+impl Eq for SelectionDelta<'_> {}
+
+impl PartialOrd for SelectionDelta<'_> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.from().partial_cmp(&other.from())
+    }
+}
+
+impl Ord for SelectionDelta<'_> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).expect("total ordering is defined")
+    }
+}
+
+/// Iterator over selection deltas keeping their order (in case of `Updated` it
+/// will order by its old state)
+pub struct SelectionDeltas<'a> {
+    selections: BTreeSet<SelectionDelta<'a>>,
+}
+
+impl<'a> SelectionDeltas<'a> {
+    /// Create empty deltas collection
+    fn new() -> Self {
+        SelectionDeltas {
+            selections: BTreeSet::new(),
+        }
+    }
+
+    /// Adds delta for a deleted selection
+    fn add_deleted(&mut self, s: Box<Selection>) {
+        self.selections.insert(SelectionDelta::Deleted(s));
+    }
+
+    /// Adds delta for a created selection
+    fn add_created(&mut self, s: &'a Selection) {
+        self.selections.insert(SelectionDelta::Created(s));
+    }
+}
+
+impl<'a> IntoIterator for SelectionDeltas<'a> {
+    type IntoIter = IntoIter<Self::Item>;
+    type Item = SelectionDelta<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.selections.into_iter()
     }
 }
