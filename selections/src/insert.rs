@@ -79,8 +79,10 @@ impl SelectionStorage {
                 to: new_to.unwrap_or(to),
                 link: RBTreeLink::new(),
             }))
-        };
-        deltas.add_created(created.get().expect("not a null object"));
+        }
+        .into_ref()
+        .expect("not a null object");
+        deltas.add_created(created);
 
         deltas
     }
@@ -95,7 +97,10 @@ mod tests {
     fn test_no_collision() {
         selections_test! {
             [],
-            storage -> { storage.insert(Position::new(1, 3), Position::new(3, 7)); },
+            storage -> { storage.insert(Position::new(1, 3), Position::new(3, 7)) },
+            [
+                Created((1, 3) - (3, 7))
+            ],
             [(1, 3) - (3, 7)]
         };
     }

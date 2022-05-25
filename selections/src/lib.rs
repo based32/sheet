@@ -127,6 +127,7 @@ impl SelectionStorage {
 }
 
 /// Info on created/deleted/updated selection.
+#[derive(Debug, PartialEq)]
 pub enum SelectionDelta<'a> {
     /// Selection was created
     Created(&'a Selection),
@@ -141,9 +142,13 @@ pub enum SelectionDelta<'a> {
     },
 }
 
+/// Wrapper to override selection delta comparison to hold a proper order within
+/// `SelectionDeltas`.
+struct SelectionDeltaWrapper<'a>(SelectionDelta<'a>);
+
 impl SelectionDelta<'_> {
     /// Shortcut to get `from` coordinate required for comparison
-    fn from(&self) -> &Position {
+    fn from_pos(&self) -> &Position {
         match self {
             SelectionDelta::Created(Selection { from, .. }) => from,
             SelectionDelta::Deleted(s) | SelectionDelta::Updated { old: s, .. } => &s.from,
@@ -151,30 +156,29 @@ impl SelectionDelta<'_> {
     }
 }
 
-impl PartialEq for SelectionDelta<'_> {
+impl PartialEq for SelectionDeltaWrapper<'_> {
     fn eq(&self, other: &Self) -> bool {
-        self.from() == other.from()
+        self.0.from_pos() == other.0.from_pos()
     }
 }
 
-impl Eq for SelectionDelta<'_> {}
+impl Eq for SelectionDeltaWrapper<'_> {}
 
-impl PartialOrd for SelectionDelta<'_> {
+impl PartialOrd for SelectionDeltaWrapper<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.from().partial_cmp(&other.from())
+        self.0.from_pos().partial_cmp(&other.0.from_pos())
     }
 }
 
-impl Ord for SelectionDelta<'_> {
+impl Ord for SelectionDeltaWrapper<'_> {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other).expect("total ordering is defined")
     }
 }
 
-/// Iterator over selection deltas keeping their order (in case of `Updated` it
-/// will order by its old state)
+/// Collection of selection deltas.
 pub struct SelectionDeltas<'a> {
-    selections: BTreeSet<SelectionDelta<'a>>,
+    selections: BTreeSet<SelectionDeltaWrapper<'a>>,
 }
 
 impl<'a> SelectionDeltas<'a> {
@@ -187,20 +191,19 @@ impl<'a> SelectionDeltas<'a> {
 
     /// Adds delta for a deleted selection
     fn add_deleted(&mut self, s: Box<Selection>) {
-        self.selections.insert(SelectionDelta::Deleted(s));
+        self.selections
+            .insert(SelectionDeltaWrapper(SelectionDelta::Deleted(s)));
     }
 
     /// Adds delta for a created selection
     fn add_created(&mut self, s: &'a Selection) {
-        self.selections.insert(SelectionDelta::Created(s));
+        self.selections
+            .insert(SelectionDeltaWrapper(SelectionDelta::Created(s)));
     }
-}
 
-impl<'a> IntoIterator for SelectionDeltas<'a> {
-    type IntoIter = IntoIter<Self::Item>;
-    type Item = SelectionDelta<'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.selections.into_iter()
+    /// Returns iterator over selection deltas keeping their order (in case of
+    /// `Updated` it will order by its old state)
+    pub fn into_iter(self) -> impl Iterator<Item = SelectionDelta<'a>> {
+        self.selections.into_iter().map(|x| x.0)
     }
 }
