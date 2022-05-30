@@ -7,7 +7,7 @@ mod insert;
 mod movements;
 mod util;
 
-use std::collections::{btree_set::IntoIter, BTreeSet};
+use std::collections::BTreeSet;
 
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 
@@ -56,6 +56,8 @@ impl PartialEq for Selection {
         self.from == other.from && self.to == other.to
     }
 }
+
+impl Eq for Selection {}
 
 impl Default for Selection {
     fn default() -> Self {
@@ -127,7 +129,7 @@ impl SelectionStorage {
 }
 
 /// Info on created/deleted/updated selection.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SelectionDelta<'a> {
     /// Selection was created
     Created(&'a Selection),
@@ -144,6 +146,7 @@ pub enum SelectionDelta<'a> {
 
 /// Wrapper to override selection delta comparison to hold a proper order within
 /// `SelectionDeltas`.
+#[derive(Debug, PartialEq, Eq)]
 struct SelectionDeltaWrapper<'a>(SelectionDelta<'a>);
 
 impl SelectionDelta<'_> {
@@ -156,17 +159,18 @@ impl SelectionDelta<'_> {
     }
 }
 
-impl PartialEq for SelectionDeltaWrapper<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.from_pos() == other.0.from_pos()
-    }
-}
-
-impl Eq for SelectionDeltaWrapper<'_> {}
-
 impl PartialOrd for SelectionDeltaWrapper<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.0.from_pos().partial_cmp(&other.0.from_pos())
+        match self.0.from_pos().partial_cmp(&other.0.from_pos()) {
+            Some(std::cmp::Ordering::Equal) => {
+                if matches!(self.0, SelectionDelta::Deleted(_)) {
+                    Some(std::cmp::Ordering::Less)
+                } else {
+                    Some(std::cmp::Ordering::Greater)
+                }
+            }
+            other => other,
+        }
     }
 }
 
@@ -177,6 +181,7 @@ impl Ord for SelectionDeltaWrapper<'_> {
 }
 
 /// Collection of selection deltas.
+#[derive(Debug)]
 pub struct SelectionDeltas<'a> {
     selections: BTreeSet<SelectionDeltaWrapper<'a>>,
 }
