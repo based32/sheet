@@ -1,7 +1,7 @@
 use intrusive_collections::{Bound, RBTreeLink};
 
 use super::{Position, SelectionStorage};
-use crate::{Selection, SelectionDeltas};
+use crate::{Selection, SelectionDeltas, SelectionDirection};
 
 impl SelectionStorage {
     /// Insert a selection bounded by `from` and `to` positions. If inserted
@@ -20,7 +20,22 @@ impl SelectionStorage {
     /// Insert a selection bounded by `from` and `to` positions. If inserted
     /// selection overlaps with an existing one(s) it either will be replaced
     /// (`replace == true`) or merged (`replace == false`).
-    fn insert_internal(&mut self, from: Position, to: Position, replace: bool) -> SelectionDeltas {
+    fn insert_internal(
+        &mut self,
+        mut from: Position,
+        mut to: Position,
+        replace: bool,
+    ) -> SelectionDeltas {
+        // If inserted selection has reversed oreder of coordinates we'll note it using
+        // `SelectionDirection`. Coordinates should be reversed back though because of
+        // how we store it.
+        let direction = if from > to {
+            std::mem::swap(&mut from, &mut to);
+            SelectionDirection::Backward
+        } else {
+            SelectionDirection::Forward
+        };
+
         // Search for a possible collision
         let (mut new_from, mut new_to) = (None, None);
 
@@ -38,32 +53,34 @@ impl SelectionStorage {
                 deltas.add_deleted(deleted);
             }
         }
+        // If selection is one char long next checks could be bypassed.
+        if from != to {
+            // Check right neighbor
+            let mut right_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&to));
+            if let Some(right) = right_collision_cursor.get() {
+                if right.from <= to && right.to >= to {
+                    // Collision with right neighbor
+                    if !replace {
+                        new_to = Some(right.to.clone());
+                    }
+                    let deleted = right_collision_cursor.remove().expect("not a null object");
+                    deltas.add_deleted(deleted);
 
-        // Check right neighbor
-        let mut right_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&to));
-        if let Some(right) = right_collision_cursor.get() {
-            if right.from <= to && right.to >= to {
-                // Collision with right neighbor
-                if !replace {
-                    new_to = Some(right.to.clone());
+                    // After removal it starts to point to the next item, but for absorbed
+                    // selections we want to go backwards.
+                    right_collision_cursor.move_prev();
                 }
-                let deleted = right_collision_cursor.remove().expect("not a null object");
-                deltas.add_deleted(deleted);
-
-                // After removal it starts to point to the next item, but for absorbed
-                // selections we want to go backwards.
-                right_collision_cursor.move_prev();
             }
-        }
 
-        // Check absorbed selections
-        while let Some(selection) = right_collision_cursor.get() {
-            if selection.from >= from && selection.to <= to {
-                let deleted = right_collision_cursor.remove().expect("not a null object");
-                deltas.add_deleted(deleted);
-                right_collision_cursor.move_prev();
-            } else {
-                break;
+            // Check absorbed selections
+            while let Some(selection) = right_collision_cursor.get() {
+                if selection.from >= from && selection.to <= to {
+                    let deleted = right_collision_cursor.remove().expect("not a null object");
+                    deltas.add_deleted(deleted);
+                    right_collision_cursor.move_prev();
+                } else {
+                    break;
+                }
             }
         }
 
@@ -71,12 +88,14 @@ impl SelectionStorage {
             self.tree.insert(Box::new(Selection {
                 from,
                 to,
+                direction,
                 link: RBTreeLink::new(),
             }))
         } else {
             self.tree.insert(Box::new(Selection {
                 from: new_from.unwrap_or(from),
                 to: new_to.unwrap_or(to),
+                direction,
                 link: RBTreeLink::new(),
             }))
         }
