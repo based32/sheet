@@ -113,6 +113,31 @@ mod tests {
     use crate::util::selections_test;
 
     #[test]
+    fn test_insert_reversed() {
+        selections_test! {
+            [],
+            storage -> { storage.insert(Position::new(3, 7), Position::new(1, 3)) },
+            [
+                Created((3, 7) - (1, 3)),
+            ],
+            [(3, 7) - (1, 3)]
+        };
+    }
+
+    #[test]
+    fn test_insert_reversed_merge() {
+        selections_test! {
+            [(0, 0) - (1, 4)],
+            storage -> { storage.insert(Position::new(3, 7), Position::new(1, 3)) },
+            [
+                Deleted((0, 0) - (1, 4)),
+                Created((3, 7) - (0, 0)),
+            ],
+            [(3, 7) - (0, 0)]
+        };
+    }
+
+    #[test]
     fn test_no_collision() {
         selections_test! {
             [],

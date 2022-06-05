@@ -60,11 +60,10 @@ macro_rules! selections_test {
         let mut selections_iter = $storage.iter_all();
         let expected_selections = [
             $(
-                $crate::Selection {
-                    from: $crate::Position::new($left_from_exp, $left_to_exp),
-                    to: $crate::Position::new($right_from_exp, $right_to_exp),
-                    ..::std::default::Default::default()
-                },
+                $crate::Selection::new(
+                    $crate::Position::new($left_from_exp, $left_to_exp),
+                    $crate::Position::new($right_from_exp, $right_to_exp)
+                ),
             )*
         ];
         for right in expected_selections.iter() {
@@ -81,11 +80,10 @@ macro_rules! selections_test {
     ) $($rest:tt)*) => {
         selections_test! { @deltas_selections [
             $($acc)*
-            $crate::Selection {
-                from: $crate::Position::new($left_from, $left_to),
-                to: $crate::Position::new($right_from, $right_to),
-                ..::std::default::Default::default()
-            },
+            $crate::Selection::new(
+                $crate::Position::new($left_from, $left_to),
+                $crate::Position::new($right_from, $right_to)
+            ),
         ] $($rest)* }
     };
 
