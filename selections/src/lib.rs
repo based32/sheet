@@ -72,6 +72,23 @@ impl Default for Selection {
 }
 
 impl Selection {
+    #[cfg(test)]
+    /// Build new selection from two positions setting proper direction depending on order.
+    fn new(mut from: Position, mut to: Position) -> Self {
+        let direction = if from > to {
+            std::mem::swap(&mut from, &mut to);
+            SelectionDirection::Backward
+        } else {
+            SelectionDirection::Forward
+        };
+        Selection {
+            from,
+            to,
+            direction,
+            ..Default::default()
+        }
+    }
+
     /// Get selection's left coordinates.
     #[inline]
     pub fn from(&self) -> &Position {
