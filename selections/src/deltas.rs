@@ -1,7 +1,7 @@
 //! Selection deltas definitions.
 use std::collections::BTreeSet;
 
-use crate::{Selection, Position};
+use crate::{Position, Selection};
 
 /// Info on created/deleted/updated selection.
 #[derive(Debug, PartialEq, Eq)]
