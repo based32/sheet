@@ -1,0 +1,25 @@
+#+TITLE: Selections
+
+* Dramatis personae
+** Selection storage
+~SelectionStorage~ is a structure which keeps each ~Selection~ in a certain order
+regardless of its direction. Provides API to insert, remove, flip, extend and move selections --- each API method that changes ~SelectionStorage~ state returns ~SelectionDelta~.
+** Selection
+~Selection~ is a pair of two ~Position~ s with a ~SelectionDirection~. Coordinates might be equal to each other, in this case it will be selection of 1 character.
+** Position
+~Position~ is a pair of coordinates: line and column. The beginning of a buffer is ~(0, 0)~
+and it will point to a line end in case of an empty buffer.
+** Selection delta
+~SelectionDelta~ is a way to receive feedback from ~SelectionStorage~ and to use this information for something like redraw. Each delta represents one selection and what happened to it.
+
+Deltas are ordered by selections' ~from~ position, in case there are two deltas referring
+to the same ~from~ position, a deletion delta will go first.
+
+* Insertion
+Selection insertion adds yet another selection to others stored performing collision checks.
+
+If there is a collision, the selection (or many of them) with which the collision occured will be deleted with according ~Deleted~ delta and new selection will be inserted with ~Created~ delta.
+
+No ~Updated~ deltas should be returned on selection insertion operation.
+
+* TODO Movement
