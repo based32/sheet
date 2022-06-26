@@ -39,7 +39,7 @@ macro_rules! selections_test {
     (
         [$(($left_from:expr, $left_to:expr) - ($right_from:expr, $right_to:expr)),*$(,)?],
         $storage:ident -> {$($body:tt)*},
-        [$($deltas:tt)*],
+        [$($exp_deltas:tt)*],
         [$(
             ($left_from_exp:expr, $left_to_exp:expr) -
             ($right_from_exp:expr, $right_to_exp:expr)
@@ -53,9 +53,9 @@ macro_rules! selections_test {
         )*
 
         let deltas = { $($body)* };
-        let expected_deltas_selections = selections_test! { @deltas_selections [] $($deltas)* };
+        let expected_deltas_selections = selections_test! { @deltas_selections [] $($exp_deltas)* };
 
-        selections_test! { @deltas_start deltas expected_deltas_selections $($deltas)* }
+        selections_test! { @deltas_start deltas expected_deltas_selections $($exp_deltas)* }
 
         let mut selections_iter = $storage.iter_all();
         let expected_selections = [
@@ -73,8 +73,8 @@ macro_rules! selections_test {
     };
 
     // Incrementally build a helper array of selections for expected deltas as some of delta
-    // variants require borrowed selections
-    (@deltas_selections [$($acc:tt)*] $(,)? $_op:ident(
+    // variants require borrowed selections (for `Created` variant).
+    (@deltas_selections [$($acc:tt)*] $(,)? Created(
         ($left_from:expr, $left_to:expr) -
         ($right_from:expr, $right_to:expr)
     ) $($rest:tt)*) => {
@@ -84,6 +84,33 @@ macro_rules! selections_test {
                 $crate::Position::new($left_from, $left_to),
                 $crate::Position::new($right_from, $right_to)
             ),
+        ] $($rest)* }
+    };
+
+    // Incrementally build a helper array of selections for expected deltas as some of delta
+    // variants require borrowed selections (for `Updated` variant).
+    (@deltas_selections [$($acc:tt)*] $(,)? Updated {
+        old: ($old_left_from:expr, $old_left_to:expr) - ($old_right_from:expr, $old_right_to:expr),
+        new: ($new_left_from:expr, $new_left_to:expr) - ($new_right_from:expr, $new_right_to:expr)
+            $(,)?
+    } $($rest:tt)*) => {
+        selections_test! { @deltas_selections [
+            $($acc)*
+            $crate::Selection::new(
+                $crate::Position::new($new_left_from, $new_left_to),
+                $crate::Position::new($new_right_from, $new_right_to)
+            ),
+        ] $($rest)* }
+    };
+
+    // Incrementally build a helper array of selections for expected deltas as some of delta
+    // variants require borrowed selections (for `Deleted` variant we do nothing).
+    (@deltas_selections [$($acc:tt)*] $(,)? Deleted(
+        ($left_from:expr, $left_to:expr) -
+        ($right_from:expr, $right_to:expr)
+    ) $($rest:tt)*) => {
+        selections_test! { @deltas_selections [
+            $($acc)*
         ] $($rest)* }
     };
 
@@ -120,13 +147,32 @@ macro_rules! selections_test {
         ($left_from:expr, $left_to:expr) -
         ($right_from:expr, $right_to:expr)
     ) $($rest:tt)* ) => {
-        selections_test! { @deltas_exp $_deltas_pos ($n + 1) [
+        selections_test! { @deltas_exp $_deltas_pos ($n) [
             $($acc)*
             $crate::SelectionDelta::Deleted(::std::boxed::Box::new($crate::Selection {
                 from: $crate::Position::new($left_from, $left_to),
                 to: $crate::Position::new($right_from, $right_to),
                 ..::std::default::Default::default()
             })),
+        ] $($rest)* }
+    };
+
+    // Incremental builder of array of expected deltas (`Updated` variant)
+    (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Updated {
+        old: ($old_left_from:expr, $old_left_to:expr) - ($old_right_from:expr, $old_right_to:expr),
+        new: ($new_left_from:expr, $new_left_to:expr) - ($new_right_from:expr, $new_right_to:expr)
+        $(,)?
+    } $($rest:tt)* ) => {
+        selections_test! { @deltas_exp $deltas_pos ($n + 1) [
+            $($acc)*
+            $crate::SelectionDelta::Updated{
+                old: ::std::boxed::Box::new($crate::Selection {
+                    from: $crate::Position::new($old_left_from, $old_left_to),
+                    to: $crate::Position::new($old_right_from, $old_right_to),
+                    ..::std::default::Default::default()
+                }),
+                new: &$deltas_pos[$n],
+            },
         ] $($rest)* }
     };
 
