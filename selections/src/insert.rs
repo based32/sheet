@@ -219,7 +219,7 @@ mod tests {
             },
             [
                 Deleted((1, 3) - (3, 7)),
-                Created((3, 7) - (4, 5))
+                Created((3, 7) - (4, 5)),
             ],
             [
                 (3, 7) - (4, 5),
@@ -233,7 +233,7 @@ mod tests {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert(Position::new(0, 10), Position::new(1, 5)) },
             [
-                Created((0, 10) - (3, 7))
+                Created((0, 10) - (3, 7)),
                 Deleted((1, 3) - (3, 7)),
             ],
             [(0, 10) - (3, 7)]
@@ -246,7 +246,7 @@ mod tests {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert_replacing(Position::new(0, 10), Position::new(1, 5)) },
             [
-                Created((0, 10) - (1, 5))
+                Created((0, 10) - (1, 5)),
                 Deleted((1, 3) - (3, 7)),
             ],
             [(0, 10) - (1, 5)]
@@ -264,7 +264,7 @@ mod tests {
             [
                 Deleted((1, 3) - (3, 7)),
                 Created((1, 3) - (5, 7)),
-                Deleted((4, 3) - (5, 7))
+                Deleted((4, 3) - (5, 7)),
             ],
             [(1, 3) - (5, 7)]
         };
@@ -281,7 +281,7 @@ mod tests {
             [
                 Deleted((1, 3) - (3, 7)),
                 Created((3, 5) - (4, 7)),
-                Deleted((4, 3) - (5, 7))
+                Deleted((4, 3) - (5, 7)),
             ],
             [(3, 5) - (4, 7)]
         };
@@ -300,7 +300,7 @@ mod tests {
             [
                 Created((0, 10) - (5, 8)),
                 Deleted((1, 3) - (3, 7)),
-                Deleted((4, 3) - (5, 7))
+                Deleted((4, 3) - (5, 7)),
             ],
             [
                 (0, 3) - (0, 5),
