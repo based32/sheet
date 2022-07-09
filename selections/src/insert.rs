@@ -113,7 +113,7 @@ mod tests {
     use crate::util::selections_test;
 
     #[test]
-    fn test_insert_reversed() {
+    fn insert_reversed() {
         selections_test! {
             [],
             storage -> { storage.insert(Position::new(3, 7), Position::new(1, 3)) },
@@ -125,7 +125,7 @@ mod tests {
     }
 
     #[test]
-    fn test_insert_reversed_merge() {
+    fn insert_reversed_merge() {
         selections_test! {
             [(0, 0) - (1, 4)],
             storage -> { storage.insert(Position::new(3, 7), Position::new(1, 3)) },
@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn test_no_collision() {
+    fn no_collision() {
         selections_test! {
             [],
             storage -> { storage.insert(Position::new(1, 3), Position::new(3, 7)) },
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_left_merge() {
+    fn collision_left_merge() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert(Position::new(1, 4), Position::new(4, 5)) },
@@ -163,7 +163,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_left_replace() {
+    fn collision_left_replace() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert_replacing(Position::new(1, 4), Position::new(4, 5)) },
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_left_merge_cornercase() {
+    fn collision_left_merge_cornercase() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> {
@@ -193,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_left_neighbors_cornercase() {
+    fn collision_left_neighbors_cornercase() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> {
@@ -211,7 +211,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_left_replace_cornercase() {
+    fn collision_left_replace_cornercase() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> {
@@ -228,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_right_merge() {
+    fn collision_right_merge() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert(Position::new(0, 10), Position::new(1, 5)) },
@@ -241,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_right_replace() {
+    fn collision_right_replace() {
         selections_test! {
             [(1, 3) - (3, 7)],
             storage -> { storage.insert_replacing(Position::new(0, 10), Position::new(1, 5)) },
@@ -254,7 +254,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_both_ends_merge() {
+    fn collision_both_ends_merge() {
         selections_test! {
             [
                 (1, 3) - (3, 7),
@@ -271,7 +271,7 @@ mod tests {
     }
 
     #[test]
-    fn test_collision_both_ends_replace() {
+    fn collision_both_ends_replace() {
         selections_test! {
             [
                 (1, 3) - (3, 7),
@@ -288,7 +288,7 @@ mod tests {
     }
 
     #[test]
-    fn test_absorbs_multiple_selections() {
+    fn absorbs_multiple_selections() {
         selections_test! {
             [
                 (0, 3) - (0, 5),
@@ -311,7 +311,7 @@ mod tests {
     }
 
     #[test]
-    fn test_absorbs_selections_and_handles_collisions_right_merge() {
+    fn absorbs_selections_and_handles_collisions_right_merge() {
         selections_test! {
             [
                 (0, 3) - (0, 5),
@@ -334,7 +334,7 @@ mod tests {
     }
 
     #[test]
-    fn test_absorbs_selections_and_handles_collisions_right_replace() {
+    fn absorbs_selections_and_handles_collisions_right_replace() {
         selections_test! {
             [
                 (0, 3) - (0, 5),
@@ -357,7 +357,7 @@ mod tests {
     }
 
     #[test]
-    fn test_absorbs_selections_and_handles_collisions_left_merge() {
+    fn absorbs_selections_and_handles_collisions_left_merge() {
         selections_test! {
             [
                 (0, 3) - (0, 5),
@@ -380,7 +380,7 @@ mod tests {
     }
 
     #[test]
-    fn test_absorbs_selections_and_handles_collisions_left_replace() {
+    fn absorbs_selections_and_handles_collisions_left_replace() {
         selections_test! {
             [
                 (0, 3) - (0, 5),
