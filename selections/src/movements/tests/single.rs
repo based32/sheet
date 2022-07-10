@@ -1,4 +1,4 @@
-use crate::{util::selections_test, Position};
+use crate::{movements::tests::utils::TestLineLengths, util::selections_test, Position};
 
 mod left {
     use super::*;
@@ -11,7 +11,8 @@ mod left {
                 (0, 1) - (1, 2),
             ],
             storage -> {
-                storage.move_left_single(&Position::new(0, 1), 1, false)
+                let line_lengths = TestLineLengths::default();
+                storage.move_left_single(line_lengths, &Position::new(0, 1), 1, false)
             },
             [
                 Updated {

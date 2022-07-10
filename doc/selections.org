@@ -33,6 +33,7 @@ deleted with according ~Deleted~ delta and new selection will be inserted with ~
 No ~Updated~ deltas should be returned on selection insertion operation.
 
 * Movement
+** Movement overview
 Movement can happen for each selection individually or for all of them at the same time and it
 comes in two flavors:
 1. movement of ~from~ or ~to~ position of each selection depending on its ~direction~ (for
@@ -49,7 +50,17 @@ Usually movements provide ~Updated~ deltas, but keep in mind collisions:
    on collision those will be ~Updated~ and other are ~Deleted~, for opposite directions
    absorbers are those closer to the buffer end.
 
-Also movements add some amount of complexity to selections structure: a sticky column. In
+** Position updates
+After position movement (regardless of whether it's ~from~ or ~to~ position of a selection)
+it's place falls into one of four categories:
+1. ~(0, 0)~ in an empty buffer (neither line nor newline symbol exist);
+2. ~(L, N)~ where ~L~ is the last line of a buffer and ~N~ equals a number of characters
+   on the line, so it will point to a newline, even there is no newline symbol;
+3. ~(L-1, N)~ where ~L-1~ is not the last line of a buffer and ~N~ equals a
+   number of characters on the line, this time it will point to acual newline symbol;
+4. any other pair of coordinates will point to a buffer content except newline.
+
+Movements add some amount of complexity to selections structure: a sticky column. In
 case if cursor's column index is greater than line length on vertical movement it should take
 its place on the line's end, but on subsequent vertical movements it should try to retrieve
 it's original column position if possible until it's dropped by horizontal movement.

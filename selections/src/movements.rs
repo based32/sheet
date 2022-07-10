@@ -6,15 +6,17 @@ use crate::{Position, SelectionDeltas, SelectionStorage};
 /// Source of line lengthes for a buffer.
 pub trait LineLength {
     /// Returns a length for a line specified by its index.
+    /// If a line contains string `line` the lenght is 4.
     fn get_len(&self, line: usize) -> usize;
 }
 
 impl Position {
-    fn move_left(&self, line_lengths: impl LineLength, mut n: usize) -> Position {
+    fn move_left(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
         let mut new_pos = self.clone();
         while n > 0 {
             if new_pos.column < n {
-                // If there is no space to move left then the position is a beginning of a buffer.
+                // If there is no space to move left then the position is a beginning of a
+                // buffer.
                 if new_pos.line == 0 {
                     new_pos.column = 0;
                     break;
@@ -22,7 +24,10 @@ impl Position {
 
                 n -= new_pos.column;
                 new_pos.line -= 1;
-                new_pos.column = line_lengths.get_len(new_pos.line);
+                new_pos.column = line_lengths.get_len(new_pos.line) + 1; // One is for newline
+            } else {
+                new_pos.column -= n;
+                break;
             }
         }
         new_pos
