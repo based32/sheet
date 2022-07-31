@@ -57,7 +57,7 @@ it's place falls into one of four categories:
 2. ~(L, N)~ where ~L~ is the last line of a buffer and ~N~ equals a number of characters
    on the line, so it will point to a newline, even there is no newline symbol;
 3. ~(L-1, N)~ where ~L-1~ is not the last line of a buffer and ~N~ equals a
-   number of characters on the line, this time it will point to acual newline symbol;
+   number of characters on the line, this time it will point to an acual newline symbol;
 4. any other pair of coordinates will point to a buffer content except newline.
 
 Movements add some amount of complexity to selections structure: a sticky column. In
