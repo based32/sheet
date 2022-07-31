@@ -73,20 +73,21 @@ mod move_right {
         assert_eq!(pos, Position::new(2, 2));
     }
 
-    // #[test]
-    // fn hit_buffer_beginning() {
-    //     let mut line_lengths = TestLineLengths::default();
-    //     line_lengths.set(0, 10);
-    //     line_lengths.set(1, 20);
+    #[test]
+    fn hit_buffer_end() {
+        let mut line_lengths = TestLineLengths::default();
+        line_lengths.set(0, 10);
+        line_lengths.set(1, 20);
+        line_lengths.set(2, 6);
 
-    //     let pos = Position::new(2, 5).move_left(&line_lengths, 69);
-    //     assert_eq!(pos, Position::new(0, 0));
-    // }
+        let pos = Position::new(0, 5).move_right(&line_lengths, 69);
+        assert_eq!(pos, Position::new(2, 5));
+    }
 
-    // #[test]
-    // fn test_empty_buffer() {
-    //     let line_lengths = TestLineLengths::default();
-    //     let pos = Position::new(0, 0).move_left(&line_lengths, 69);
-    //     assert_eq!(pos, Position::new(0, 0));
-    // }
+    #[test]
+    fn test_empty_buffer() {
+        let line_lengths = TestLineLengths::default();
+        let pos = Position::new(0, 0).move_right(&line_lengths, 69);
+        assert_eq!(pos, Position::new(0, 0));
+    }
 }
