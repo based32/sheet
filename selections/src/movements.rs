@@ -7,6 +7,8 @@ use crate::{Position, SelectionDeltas, SelectionStorage};
 pub trait LineLength {
     /// Returns a length for a line specified by its index.
     /// If a line contains string `line` the lenght is 4.
+    /// If it's not the end of the buffer, so newline symbol is in place, it
+    /// would be 5.
     fn get_len(&self, line: usize) -> usize;
 }
 
@@ -24,7 +26,7 @@ impl Position {
 
                 n -= new_pos.column;
                 new_pos.line -= 1;
-                new_pos.column = line_lengths.get_len(new_pos.line) + 1; // One is for newline
+                new_pos.column = line_lengths.get_len(new_pos.line);
             } else {
                 new_pos.column -= n;
                 break;
@@ -33,8 +35,25 @@ impl Position {
         new_pos
     }
 
-    fn move_right(&self, line_lengths: impl LineLength, n: usize) -> Position {
-        todo!()
+    fn move_right(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
+        let mut new_pos = self.clone();
+        while n > 0 {
+            new_pos.column += n;
+            let current_line_length = line_lengths.get_len(new_pos.line);
+            if new_pos.column > current_line_length {
+                if line_lengths.get_len(new_pos.line + 1) == 0 {
+                    // Reached buffer end
+                    new_pos.column = current_line_length;
+                    break;
+                }
+                n = new_pos.column - current_line_length;
+                new_pos.line += 1;
+                new_pos.column = 0;
+            } else {
+                break;
+            }
+        }
+        new_pos
     }
 
     fn move_up(&self, line_lengths: impl LineLength, n: usize) -> Position {
