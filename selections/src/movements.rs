@@ -43,7 +43,7 @@ impl Position {
             if new_pos.column > current_line_length {
                 if line_lengths.get_len(new_pos.line + 1) == 0 {
                     // Reached buffer end
-                    new_pos.column = current_line_length;
+                    new_pos.column = current_line_length.saturating_sub(1);
                     break;
                 }
                 n = new_pos.column - current_line_length;
