@@ -11,7 +11,7 @@ mod left {
                 (0, 1) - (1, 2),
             ],
             storage -> {
-                let line_lengths = TestLineLengths::default();
+                let line_lengths = TestLineLengths::new();
                 storage.move_left_single(line_lengths, &Position::new(0, 1), 1, false)
             },
             [
