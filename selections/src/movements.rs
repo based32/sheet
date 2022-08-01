@@ -7,9 +7,13 @@ use crate::{Position, SelectionDeltas, SelectionStorage};
 pub trait LineLength {
     /// Returns a length for a line specified by its index.
     /// If a line contains string `line` the lenght is 4.
-    /// If it's not the end of the buffer, so newline symbol is in place, it
-    /// would be 5.
-    fn get_len(&self, line: usize) -> usize;
+    ///
+    /// Newline is not included, so `line` line in a middle of a buffer will
+    /// have the same length as `line` in the end of the buffer (meaning there
+    /// is no newline symbol).
+    ///
+    /// `None` is returned if requested line is out of buffer's bounds.
+    fn get_len(&self, line: usize) -> Option<usize>;
 }
 
 impl Position {
@@ -26,7 +30,10 @@ impl Position {
 
                 n -= new_pos.column;
                 new_pos.line -= 1;
-                new_pos.column = line_lengths.get_len(new_pos.line);
+                new_pos.column = line_lengths
+                    .get_len(new_pos.line)
+                    .expect("position must be on a valid line")
+                    + 1;
             } else {
                 new_pos.column -= n;
                 break;
@@ -39,14 +46,16 @@ impl Position {
         let mut new_pos = self.clone();
         while n > 0 {
             new_pos.column += n;
-            let current_line_length = line_lengths.get_len(new_pos.line);
+            let current_line_length = line_lengths
+                .get_len(new_pos.line)
+                .expect("position must be on a valid line");
             if new_pos.column > current_line_length {
-                if line_lengths.get_len(new_pos.line + 1) == 0 {
+                if line_lengths.get_len(new_pos.line + 1).is_none() {
                     // Reached buffer end
                     new_pos.column = current_line_length.saturating_sub(1);
                     break;
                 }
-                n = new_pos.column - current_line_length;
+                n = new_pos.column - current_line_length - 1;
                 new_pos.line += 1;
                 new_pos.column = 0;
             } else {
