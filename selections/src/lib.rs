@@ -16,6 +16,7 @@ use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
 pub struct Position {
     line: usize,
     column: usize,
+    sticky_column: Option<usize>,
 }
 
 impl PartialOrd for Position {
@@ -30,16 +31,29 @@ impl PartialOrd for Position {
 impl Position {
     /// Creates new position with `line` and `column`.
     pub fn new(line: usize, column: usize) -> Self {
-        Position { line, column }
+        Position {
+            line,
+            column,
+            sticky_column: None,
+        }
+    }
+
+    /// Creates new position with `line`, `column` and `sticky_column`.
+    pub fn new_with_sticky(line: usize, column: usize, sticky_column: usize) -> Self {
+        Position {
+            line,
+            column,
+            sticky_column: Some(sticky_column),
+        }
     }
 }
 
-/// Direction of selections in the selection storage.
+/// Direction of a selection.
 #[derive(Debug, Clone, Copy)]
 pub enum SelectionDirection {
-    /// Means each cursor is after selection
+    /// Means cursor is after selection
     Forward,
-    /// Means each cursor is before selection
+    /// Means cursor is before selection
     Backward,
 }
 
