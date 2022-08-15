@@ -65,11 +65,24 @@ impl Position {
         new_pos
     }
 
-    fn move_up(&self, line_lengths: impl LineLength, n: usize) -> Position {
-        todo!()
+    fn move_up(&self, line_lengths: &impl LineLength, n: usize) -> Position {
+        let mut new_pos = self.clone();
+        new_pos.line = new_pos.line.saturating_sub(n);
+
+        let line_length = line_lengths
+            .get_len(new_pos.line)
+            .expect("lines above positions always exist");
+        if line_length >= new_pos.column {
+            new_pos.sticky_column = None;
+        } else {
+            new_pos.sticky_column = Some(new_pos.column);
+            new_pos.column = line_length;
+        }
+
+        new_pos
     }
 
-    fn move_down(&self, line_lengths: impl LineLength, n: usize) -> Position {
+    fn move_down(&self, line_lengths: &impl LineLength, n: usize) -> Position {
         todo!()
     }
 }

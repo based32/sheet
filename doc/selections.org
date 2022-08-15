@@ -51,6 +51,9 @@ Usually movements provide ~Updated~ deltas, but keep in mind collisions:
    absorbers are those closer to the buffer end.
 
 ** Position updates
+
+*** Position variants
+
 After position movement (regardless of whether it's ~from~ or ~to~ position of a selection)
 it's place falls into one of four categories:
 1. ~(0, 0)~ in an empty buffer (neither line nor newline symbol exist);
@@ -59,6 +62,17 @@ it's place falls into one of four categories:
 3. ~(L-1, N)~ where ~L-1~ is not the last line of a buffer and ~N~ equals a
    number of characters on the line, this time it will point to an acual newline symbol;
 4. any other pair of coordinates will point to a buffer content except newline.
+
+*** Note on ~LineLength~ trait
+
+As listed in the previous paragraph there are be multiple kinds of positions, some of them
+point to a line end, but line end might be a newline symbol or not. For the sake of
+consistency in both cases line lenght is a number of characters before line end regardless
+of newline symbol. For example, an empty buffer has a lenght of 0 for it's 0-indexed line,
+a buffer of two empty lines has lengths of 0 for each of them even it's 0-indexed line
+has a newline symbol and the last line has nothing in it, but still can have a cursor on it.
+
+*** Sticky column
 
 Movements add some amount of complexity to selections structure: a sticky column. In
 case if cursor's column index is greater than line length on vertical movement it should take
