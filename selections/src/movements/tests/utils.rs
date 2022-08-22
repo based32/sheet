@@ -25,4 +25,8 @@ impl LineLength for TestLineLengths {
     fn get_len(&self, line: usize) -> Option<usize> {
         self.line_length.get(&line).map(|x| *x)
     }
+
+    fn lines_count(&self) -> usize {
+        self.line_length.len()
+    }
 }

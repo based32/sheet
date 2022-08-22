@@ -14,6 +14,9 @@ pub trait LineLength {
     ///
     /// `None` is returned if requested line is out of buffer's bounds.
     fn get_len(&self, line: usize) -> Option<usize>;
+
+    /// Returns a total number of lines.
+    fn lines_count(&self) -> usize;
 }
 
 impl Position {
@@ -73,6 +76,9 @@ impl Position {
             .get_len(new_pos.line)
             .expect("lines above positions always exist");
         if line_length >= new_pos.column {
+            if let Some(sticky_column) = new_pos.sticky_column {
+                new_pos.column = sticky_column;
+            }
             new_pos.sticky_column = None;
         } else {
             new_pos.sticky_column = Some(new_pos.column);
@@ -83,7 +89,28 @@ impl Position {
     }
 
     fn move_down(&self, line_lengths: &impl LineLength, n: usize) -> Position {
-        todo!()
+        let mut new_pos = self.clone();
+        new_pos.line += n;
+
+        let lines_count = line_lengths.lines_count();
+        if new_pos.line >= lines_count {
+            new_pos.line = lines_count - 1;
+        }
+
+        let line_length = line_lengths
+            .get_len(new_pos.line)
+            .expect("lines count checked above");
+        if line_length >= new_pos.column {
+            if let Some(sticky_column) = new_pos.sticky_column {
+                new_pos.column = sticky_column;
+            }
+            new_pos.sticky_column = None;
+        } else {
+            new_pos.sticky_column = Some(new_pos.column);
+            new_pos.column = line_length;
+        }
+
+        new_pos
     }
 }
 
