@@ -58,7 +58,7 @@ pub enum SelectionDirection {
 }
 
 /// Selection is a pair of coordinates in a document.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Selection {
     from: Position,
     to: Position,
