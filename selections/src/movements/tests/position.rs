@@ -2,6 +2,8 @@ use super::utils::TestLineLengths;
 use crate::Position;
 
 mod move_left {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -66,6 +68,8 @@ mod move_left {
 }
 
 mod move_right {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -120,7 +124,19 @@ mod move_right {
         line_lengths.set(2, 6);
 
         let pos = Position::new(0, 5).move_right(&line_lengths, 69);
-        assert_eq!(pos, Position::new(2, 5));
+        assert_eq!(pos, Position::new(2, 6)); // Hitting a fake newline symbol
+    }
+
+    #[test]
+    fn hit_buffer_end_with_newline() {
+        let mut line_lengths = TestLineLengths::new();
+        line_lengths.set(0, 10);
+        line_lengths.set(1, 20);
+        line_lengths.set(2, 6);
+        line_lengths.set(3, 0);
+
+        let pos = Position::new(0, 5).move_right(&line_lengths, 69);
+        assert_eq!(pos, Position::new(3, 0));
     }
 
     #[test]
@@ -132,6 +148,8 @@ mod move_right {
 }
 
 mod move_up {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -225,6 +243,8 @@ mod move_up {
 }
 
 mod move_down {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]

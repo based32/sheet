@@ -46,10 +46,16 @@ impl Position {
             sticky_column: Some(sticky_column),
         }
     }
+
+    /// Removes sticky column
+    fn remove_sticky(mut self) -> Self {
+        self.sticky_column = None;
+        self
+    }
 }
 
 /// Direction of a selection.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SelectionDirection {
     /// Means cursor is after selection
     Forward,
@@ -58,7 +64,7 @@ pub enum SelectionDirection {
 }
 
 /// Selection is a pair of coordinates in a document.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Selection {
     from: Position,
     to: Position,
@@ -68,7 +74,7 @@ pub struct Selection {
 
 impl PartialEq for Selection {
     fn eq(&self, other: &Self) -> bool {
-        self.from == other.from && self.to == other.to
+        self.from == other.from && self.to == other.to && self.direction == other.direction
     }
 }
 
@@ -86,7 +92,6 @@ impl Default for Selection {
 }
 
 impl Selection {
-    #[cfg(test)]
     /// Build new selection from two positions setting proper direction
     /// depending on order.
     fn new(mut from: Position, mut to: Position) -> Self {
