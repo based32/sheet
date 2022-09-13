@@ -86,7 +86,6 @@ impl Default for Selection {
 }
 
 impl Selection {
-    #[cfg(test)]
     /// Build new selection from two positions setting proper direction
     /// depending on order.
     fn new(mut from: Position, mut to: Position) -> Self {
