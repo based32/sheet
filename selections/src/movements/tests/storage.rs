@@ -4,6 +4,7 @@ mod left {
     use super::*;
 
     #[test]
+    #[ignore]
     fn single_no_extend_forward_same_line() {
         selections_test! {
             [

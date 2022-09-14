@@ -12,7 +12,7 @@ impl Selection {
             SelectionDirection::Backward => {
                 let from = self.from.move_left(line_lengths, n);
                 let to = if !extend {
-                    self.from.clone()
+                    from.clone()
                 } else {
                     self.to.clone()
                 };
