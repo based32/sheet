@@ -16,7 +16,7 @@ impl Selection {
                 } else {
                     self.to.clone()
                 };
-                Selection::new(from, to)
+                Selection::new(to, from)
             }
             SelectionDirection::Forward => {
                 let to = self.to.move_left(line_lengths, n);
@@ -44,7 +44,7 @@ impl Selection {
                 } else {
                     self.to.clone()
                 };
-                Selection::new(from, to)
+                Selection::new(to, from)
             }
             SelectionDirection::Forward => {
                 let to = self.to.move_right(line_lengths, n);
