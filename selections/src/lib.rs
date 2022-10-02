@@ -49,7 +49,7 @@ impl Position {
 }
 
 /// Direction of a selection.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SelectionDirection {
     /// Means cursor is after selection
     Forward,
@@ -68,7 +68,7 @@ pub struct Selection {
 
 impl PartialEq for Selection {
     fn eq(&self, other: &Self) -> bool {
-        self.from == other.from && self.to == other.to
+        self.from == other.from && self.to == other.to && self.direction == other.direction
     }
 }
 

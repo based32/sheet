@@ -70,7 +70,7 @@ it's place falls into one of four categories:
 As listed in the previous paragraph there are be multiple kinds of positions, some of them
 point to a line end, but line end might be a newline symbol or not. For the sake of
 consistency in both cases line lenght is a number of characters before line end regardless
-of newline symbol. For example, an empty buffer has a lenght of 0 for it's 0-indexed line,
+of newline symbol. For example, an empty buffer has a length of 0 for it's 0-indexed line,
 a buffer of two empty lines has lengths of 0 for each of them even it's 0-indexed line
 has a newline symbol and the last line has nothing in it, but still can have a cursor on it.
 
