@@ -46,6 +46,12 @@ impl Position {
             sticky_column: Some(sticky_column),
         }
     }
+
+    /// Removes sticky column
+    fn remove_sticky(mut self) -> Self {
+        self.sticky_column = None;
+        self
+    }
 }
 
 /// Direction of a selection.
