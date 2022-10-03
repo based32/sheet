@@ -68,16 +68,16 @@ impl Selection {
             SelectionDirection::Backward => {
                 let from = self.from.move_up(line_lengths, n);
                 let to = if !extend {
-                    from.clone()
+                    from.clone().remove_sticky()
                 } else {
                     self.to.clone()
                 };
-                Selection::new(from, to)
+                Selection::new(to, from)
             }
             SelectionDirection::Forward => {
                 let to = self.to.move_up(line_lengths, n);
                 let from = if !extend {
-                    to.clone()
+                    to.clone().remove_sticky()
                 } else {
                     self.from.clone()
                 };
