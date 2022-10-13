@@ -100,12 +100,12 @@ impl Selection {
                 } else {
                     self.to.clone()
                 };
-                Selection::new(from, to)
+                Selection::new(to, from)
             }
             SelectionDirection::Forward => {
                 let to = self.to.move_down(line_lengths, n);
                 let from = if !extend {
-                    to.clone()
+                    to.clone().remove_sticky()
                 } else {
                     self.from.clone()
                 };

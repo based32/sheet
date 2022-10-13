@@ -67,7 +67,7 @@ macro_rules! selections_test {
             )*
         ];
         for right in expected_selections.iter() {
-            assert_eq!(selections_iter.next(), Some(right));
+            ::pretty_assertions::assert_eq!(selections_iter.next(), Some(right));
         }
         assert!(selections_iter.next().is_none());
     };
@@ -125,7 +125,7 @@ macro_rules! selections_test {
             let mut deltas_iter = $deltas_ident.into_iter();
             let expected_deltas = selections_test! { @deltas_exp $deltas_pos (0) [] $($rest)* };
             for right in expected_deltas.into_iter() {
-                assert_eq!(deltas_iter.next(), Some(right));
+                ::pretty_assertions::assert_eq!(deltas_iter.next(), Some(right));
             }
             assert!(deltas_iter.next().is_none());
         }

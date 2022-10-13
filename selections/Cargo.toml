@@ -7,3 +7,6 @@ description = "Multiselections housekeeping"
 
 [dependencies]
 intrusive-collections = "0.9.4"
+
+[dev-dependencies]
+pretty_assertions = "1.3.0"

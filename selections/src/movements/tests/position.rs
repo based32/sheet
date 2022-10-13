@@ -2,6 +2,8 @@ use super::utils::TestLineLengths;
 use crate::Position;
 
 mod move_left {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -66,6 +68,8 @@ mod move_left {
 }
 
 mod move_right {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -144,6 +148,8 @@ mod move_right {
 }
 
 mod move_up {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
@@ -237,6 +243,8 @@ mod move_up {
 }
 
 mod move_down {
+    use pretty_assertions::assert_eq;
+
     use super::*;
 
     #[test]
