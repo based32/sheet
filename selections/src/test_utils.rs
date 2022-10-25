@@ -1,4 +1,3 @@
-#[cfg(test)]
 /// Test helper macro that simplifies definition of selections storage state
 /// and expectations after executing some actions.
 /// For better transparency it has no default selection (`(0, 0)` to `(0, 1)`).
@@ -48,8 +47,10 @@ macro_rules! selections_test {
         let mut $storage = $crate::SelectionStorage::new_empty();
 
         $($storage.insert(
-            $crate::Position::new($left_from, $left_to),
-            $crate::Position::new($right_from, $right_to));
+	    $crate::Selection::new(
+		$crate::Position::new($left_from, $left_to),
+		$crate::Position::new($right_from, $right_to)
+	    ));
         )*
 
         let deltas = { $($body)* };
@@ -149,11 +150,11 @@ macro_rules! selections_test {
     ) $($rest:tt)* ) => {
         selections_test! { @deltas_exp $_deltas_pos ($n) [
             $($acc)*
-            $crate::SelectionDelta::Deleted(::std::boxed::Box::new($crate::Selection {
+            $crate::SelectionDelta::Deleted($crate::Selection {
                 from: $crate::Position::new($left_from, $left_to),
                 to: $crate::Position::new($right_from, $right_to),
                 ..::std::default::Default::default()
-            })),
+            }),
         ] $($rest)* }
     };
 
@@ -166,11 +167,11 @@ macro_rules! selections_test {
         selections_test! { @deltas_exp $deltas_pos ($n + 1) [
             $($acc)*
             $crate::SelectionDelta::Updated{
-                old: ::std::boxed::Box::new($crate::Selection {
+                old: $crate::Selection {
                     from: $crate::Position::new($old_left_from, $old_left_to),
                     to: $crate::Position::new($old_right_from, $old_right_to),
                     ..::std::default::Default::default()
-                }),
+                },
                 new: &$deltas_pos[$n],
             },
         ] $($rest)* }
@@ -182,5 +183,37 @@ macro_rules! selections_test {
     };
 }
 
-#[cfg(test)]
+use std::collections::BTreeMap;
+
 pub(crate) use selections_test;
+
+use crate::LineLength;
+
+#[derive(Debug)]
+pub(crate) struct TestLineLengths {
+    line_length: BTreeMap<usize, usize>,
+}
+
+impl TestLineLengths {
+    pub(crate) fn new() -> Self {
+        let mut line_lengths = TestLineLengths {
+            line_length: Default::default(),
+        };
+        line_lengths.set(0, 0);
+        line_lengths
+    }
+
+    pub(crate) fn set(&mut self, line: usize, length: usize) {
+        self.line_length.insert(line, length);
+    }
+}
+
+impl LineLength for TestLineLengths {
+    fn get_len(&self, line: usize) -> Option<usize> {
+        self.line_length.get(&line).map(|x| *x)
+    }
+
+    fn lines_count(&self) -> usize {
+        self.line_length.len()
+    }
+}

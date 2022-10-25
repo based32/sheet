@@ -3,17 +3,17 @@ use std::collections::BTreeSet;
 
 use crate::{Position, Selection};
 
-/// Info on created/deleted/updated selection.
+/// Info on changed selection.
 #[derive(Debug, PartialEq, Eq)]
 pub enum SelectionDelta<'a> {
     /// Selection was created
     Created(&'a Selection),
     /// Selection was deleted
-    Deleted(Box<Selection>),
+    Deleted(Selection),
     /// Selection was updated
     Updated {
         /// Old selection state
-        old: Box<Selection>,
+        old: Selection,
         /// New selection state
         new: &'a Selection,
     },
@@ -70,7 +70,7 @@ impl<'a> SelectionDeltas<'a> {
     }
 
     /// Adds delta for a deleted selection
-    pub(crate) fn add_deleted(&mut self, s: Box<Selection>) {
+    pub(crate) fn add_deleted(&mut self, s: Selection) {
         self.selections
             .insert(SelectionDeltaWrapper(SelectionDelta::Deleted(s)));
     }

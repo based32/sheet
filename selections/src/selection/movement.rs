@@ -1,5 +1,4 @@
-use super::LineLength;
-use crate::{Position, Selection, SelectionDeltas, SelectionDirection, SelectionStorage};
+use crate::{LineLength, Selection, SelectionDirection};
 
 impl Selection {
     pub(super) fn move_left(

@@ -1,5 +1,5 @@
-use super::utils::TestLineLengths;
-use crate::Selection;
+use super::Selection;
+use crate::test_utils::TestLineLengths;
 
 mod move_left_one_line {
     use pretty_assertions::assert_eq;
