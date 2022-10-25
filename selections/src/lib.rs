@@ -1,12 +1,14 @@
-#![deny(missing_docs)]
-
 //! Selection storage library.
+
+#![deny(missing_docs)]
 
 mod deltas;
 mod get;
 mod insert;
 mod movements;
 mod util;
+
+use std::mem;
 
 pub use deltas::{SelectionDelta, SelectionDeltas};
 use intrusive_collections::{intrusive_adapter, KeyAdapter, RBTree, RBTreeLink};
@@ -96,7 +98,7 @@ impl Selection {
     /// depending on order.
     fn new(mut from: Position, mut to: Position) -> Self {
         let direction = if from > to {
-            std::mem::swap(&mut from, &mut to);
+            mem::swap(&mut from, &mut to);
             SelectionDirection::Backward
         } else {
             SelectionDirection::Forward
@@ -141,9 +143,10 @@ impl<'a> KeyAdapter<'a> for SelectionAdapter {
     }
 }
 
-/// Multiselection storage which guarantees no overlaps.
+/// Multiselection storage.
 pub struct SelectionStorage {
     tree: RBTree<SelectionAdapter>,
+    // TODO: active
 }
 
 impl SelectionStorage {
