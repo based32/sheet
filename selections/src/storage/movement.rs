@@ -1,5 +1,5 @@
-use super::LineLength;
-use crate::{Position, SelectionDeltas, SelectionStorage};
+use super::SelectionStorage;
+use crate::{LineLength, Position, SelectionDeltas};
 
 impl SelectionStorage {
     /// Moves a selection identified by `pos` as its `from` position on `n`

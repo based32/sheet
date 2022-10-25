@@ -1,8 +1,8 @@
-use super::LineLength;
-use crate::Position;
+use super::Position;
+use crate::LineLength;
 
 impl Position {
-    pub(super) fn move_left(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
+    pub(crate) fn move_left(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
         let mut new_pos = self.clone();
         while n > 0 {
             if new_pos.column < n {
@@ -27,7 +27,7 @@ impl Position {
         new_pos
     }
 
-    pub(super) fn move_right(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
+    pub(crate) fn move_right(&self, line_lengths: &impl LineLength, mut n: usize) -> Position {
         let mut new_pos = self.clone();
         while n > 0 {
             new_pos.column += n;
@@ -50,7 +50,7 @@ impl Position {
         new_pos
     }
 
-    pub(super) fn move_up(&self, line_lengths: &impl LineLength, n: usize) -> Position {
+    pub(crate) fn move_up(&self, line_lengths: &impl LineLength, n: usize) -> Position {
         let mut new_pos = self.clone();
         new_pos.line = new_pos.line.saturating_sub(n);
 
@@ -70,7 +70,7 @@ impl Position {
         new_pos
     }
 
-    pub(super) fn move_down(&self, line_lengths: &impl LineLength, n: usize) -> Position {
+    pub(crate) fn move_down(&self, line_lengths: &impl LineLength, n: usize) -> Position {
         let mut new_pos = self.clone();
         new_pos.line += n;
 

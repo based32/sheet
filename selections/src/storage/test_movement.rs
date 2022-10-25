@@ -1,4 +1,7 @@
-use crate::{movements::tests::utils::TestLineLengths, util::selections_test, Position};
+use crate::{
+    test_utils::{selections_test, TestLineLengths},
+    Position,
+};
 
 mod left_single {
     use super::*;
