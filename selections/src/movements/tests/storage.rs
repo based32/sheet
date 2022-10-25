@@ -1,11 +1,10 @@
 use crate::{movements::tests::utils::TestLineLengths, util::selections_test, Position};
 
-mod left {
+mod left_single {
     use super::*;
 
     #[test]
-    #[ignore]
-    fn single_no_extend_forward_same_line() {
+    fn forward_same_line_no_extend_no_overlap() {
         selections_test! {
             [
                 (0, 0) - (0, 0),

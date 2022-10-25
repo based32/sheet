@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 
 use crate::{Position, Selection};
 
-/// Info on created/deleted/updated selection.
+/// Info on changed selection.
 #[derive(Debug, PartialEq, Eq)]
 pub enum SelectionDelta<'a> {
     /// Selection was created
