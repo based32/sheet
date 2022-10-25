@@ -1,5 +1,3 @@
-use intrusive_collections::{Bound, RBTreeLink};
-
 use super::{Position, SelectionStorage};
 use crate::{Selection, SelectionDeltas, SelectionDirection};
 
@@ -89,14 +87,12 @@ impl SelectionStorage {
                 from,
                 to,
                 direction,
-                link: RBTreeLink::new(),
             }))
         } else {
             self.tree.insert(Box::new(Selection {
                 from: new_from.unwrap_or(from),
                 to: new_to.unwrap_or(to),
                 direction,
-                link: RBTreeLink::new(),
             }))
         }
         .into_ref()

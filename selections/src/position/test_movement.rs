@@ -1,5 +1,5 @@
-use super::utils::TestLineLengths;
-use crate::Position;
+use super::Position;
+use crate::test_utils::TestLineLengths;
 
 mod move_left {
     use pretty_assertions::assert_eq;

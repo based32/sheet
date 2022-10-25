@@ -1,62 +1,29 @@
-use intrusive_collections::{rbtree::Cursor, Bound};
+//! Operations to get selections using iterators.
 
-use super::{SelectionAdapter, SelectionStorage};
-use crate::{Position, Selection};
+use core::slice;
+
+use super::SelectionStorage;
+use crate::Selection;
 
 /// Iterator over selections.
-pub struct SelectionsIter<'a> {
-    cursor: Cursor<'a, SelectionAdapter>,
-    done: bool,
-}
-
-impl<'a> Iterator for SelectionsIter<'a> {
-    type Item = &'a Selection;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.done {
-            None
-        } else {
-            let value = self.cursor.get();
-            self.cursor.move_next();
-            if value.is_none() {
-                self.done = true;
-            }
-            value
-        }
-    }
-}
+type SelectionsIter<'a> = slice::Iter<'a, Selection>;
 
 impl SelectionStorage {
     /// Returns iterator over all selections in the storage.
     pub fn iter_all(&self) -> SelectionsIter {
-        SelectionsIter {
-            cursor: self.tree.front(),
-            done: false,
-        }
+        self.selections.iter()
     }
 
     /// Returns iterator over selections starting from `line`
     pub fn iter_from_line(&self, line: usize) -> SelectionsIter {
-        let mut cursor = self
-            .tree
-            .upper_bound(Bound::Included(&Position::new(line, 0)));
-        if let Some(selection) = cursor.get() {
-            if selection.to.line < line {
-                // Selection ends before lower bound so it should be skipped
-                cursor.move_next();
-            }
-        }
-        SelectionsIter {
-            cursor,
-            done: false,
-        }
+        todo!()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Selection;
+    use crate::{Position, Selection};
 
     #[test]
     fn test_iter_all() {
@@ -86,7 +53,6 @@ mod tests {
             assert_eq!(iter.next(), Some(right));
         }
         assert!(iter.next().is_none());
-        assert!(iter.done);
     }
 
     #[test]
@@ -119,6 +85,5 @@ mod tests {
             assert_eq!(iter.next(), Some(right));
         }
         assert!(iter.next().is_none());
-        assert!(iter.done);
     }
 }

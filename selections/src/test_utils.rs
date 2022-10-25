@@ -1,4 +1,3 @@
-#[cfg(test)]
 /// Test helper macro that simplifies definition of selections storage state
 /// and expectations after executing some actions.
 /// For better transparency it has no default selection (`(0, 0)` to `(0, 1)`).
@@ -182,5 +181,37 @@ macro_rules! selections_test {
     };
 }
 
-#[cfg(test)]
+use std::collections::BTreeMap;
+
 pub(crate) use selections_test;
+
+use crate::LineLength;
+
+#[derive(Debug)]
+pub(crate) struct TestLineLengths {
+    line_length: BTreeMap<usize, usize>,
+}
+
+impl TestLineLengths {
+    pub(crate) fn new() -> Self {
+        let mut line_lengths = TestLineLengths {
+            line_length: Default::default(),
+        };
+        line_lengths.set(0, 0);
+        line_lengths
+    }
+
+    pub(crate) fn set(&mut self, line: usize, length: usize) {
+        self.line_length.insert(line, length);
+    }
+}
+
+impl LineLength for TestLineLengths {
+    fn get_len(&self, line: usize) -> Option<usize> {
+        self.line_length.get(&line).map(|x| *x)
+    }
+
+    fn lines_count(&self) -> usize {
+        self.line_length.len()
+    }
+}
