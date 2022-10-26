@@ -34,8 +34,11 @@ impl SelectionStorage {
     }
 
     #[cfg(debug_assertions)]
-    /// Verify if selections are kept sorted.
-    fn is_sorted(&self) -> bool {
-	self.selections.as_slice().windows(2).all(|w| w[0].from() <= w[1].from())
+    /// Verify if selections are kept sorted and with no overlaps.
+    fn is_state_correct(&self) -> bool {
+        self.selections
+            .as_slice()
+            .windows(2)
+            .all(|w| w[0].to() < w[1].from())
     }
 }

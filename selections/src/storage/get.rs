@@ -30,8 +30,8 @@ mod tests {
     #[test]
     fn test_iter_all() {
         let mut storage = SelectionStorage::new();
-        storage.insert(Position::new(2, 0), Position::new(2, 10));
-        storage.insert(Position::new(2, 15), Position::new(2, 20));
+        storage.insert(Selection::new(Position::new(2, 0), Position::new(2, 10)));
+        storage.insert(Selection::new(Position::new(2, 15), Position::new(2, 20)));
 
         let mut iter = storage.iter_all();
         let expected = [
@@ -60,10 +60,10 @@ mod tests {
     #[test]
     fn test_iter_from_line() {
         let mut storage = SelectionStorage::new();
-        storage.insert(Position::new(1, 10), Position::new(1, 15));
-        storage.insert(Position::new(1, 20), Position::new(2, 1));
-        storage.insert(Position::new(2, 15), Position::new(2, 20));
-        storage.insert(Position::new(3, 5), Position::new(3, 26));
+        storage.insert(Selection::new(Position::new(1, 10), Position::new(1, 15)));
+        storage.insert(Selection::new(Position::new(1, 20), Position::new(2, 1)));
+        storage.insert(Selection::new(Position::new(2, 15), Position::new(2, 20)));
+        storage.insert(Selection::new(Position::new(3, 5), Position::new(3, 26)));
 
         let mut iter = storage.iter_from_line(2);
         let expected = [
