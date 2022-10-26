@@ -62,19 +62,18 @@ impl Selection {
         }
     }
 
-    /// Get selection's left coordinates.
+    /// Get selection's anchor.
     #[inline]
-    pub fn from(&self) -> &Position {
+    pub fn anchor(&self) -> &Position {
         match self.direction {
             SelectionDirection::Forward => &self.from,
             SelectionDirection::Backward => &self.to,
         }
     }
 
-    /// Get selection's right coordinates (greater than or equal to its left
-    /// coordinates).
+    /// Get selection's cursor.
     #[inline]
-    pub fn to(&self) -> &Position {
+    pub fn cursor(&self) -> &Position {
         match self.direction {
             SelectionDirection::Forward => &self.to,
             SelectionDirection::Backward => &self.from,

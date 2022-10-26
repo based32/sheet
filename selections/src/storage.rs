@@ -39,6 +39,6 @@ impl SelectionStorage {
         self.selections
             .as_slice()
             .windows(2)
-            .all(|w| w[0].to() < w[1].from())
+            .all(|w| w[0].to < w[1].from)
     }
 }
