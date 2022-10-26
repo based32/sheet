@@ -43,15 +43,16 @@ impl SelectionStorage {
                     }
                 };
 
-                // TODO: size hint in case of switching to Vec for deltas
-                let mut deltas = SelectionDeltas::new();
+                let mut deltas = SelectionDeltas::with_capacity(
+                    overlapping_indicies.end() - overlapping_indicies.start() + 2,
+                );
 
                 // Remove all overlapping selections except first one:
                 for s in self
                     .selections
                     .drain(overlapping_indicies.start() + 1..=*overlapping_indicies.end())
                 {
-                    deltas.add_deleted(s);
+                    deltas.push_deleted(s);
                 }
 
                 // Replace first overlapping selection with a new one:
@@ -60,8 +61,8 @@ impl SelectionStorage {
                     &mut self.selections[*overlapping_indicies.start()],
                     &mut old_first_selection,
                 );
-                deltas.add_created(&self.selections[*overlapping_indicies.start()]);
-                deltas.add_deleted(old_first_selection);
+                deltas.push_created(&self.selections[*overlapping_indicies.start()]);
+                deltas.push_deleted(old_first_selection);
 
                 deltas
             }
@@ -69,8 +70,8 @@ impl SelectionStorage {
                 // No overlaps found, just insert the selection:
                 self.selections.insert(index_to_insert, selection);
 
-                let mut deltas = SelectionDeltas::new();
-                deltas.add_created(&self.selections[index_to_insert]);
+                let mut deltas = SelectionDeltas::with_capacity(1);
+                deltas.push_created(&self.selections[index_to_insert]);
                 deltas
             }
         };
