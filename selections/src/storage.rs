@@ -1,8 +1,9 @@
 //! [SelectionStorage] declaration and implementation.
 
 mod get;
-//mod insert;
+mod insert;
 mod movement;
+mod query;
 #[cfg(test)]
 mod test_movement;
 
