@@ -1,5 +1,5 @@
 //! Selection deltas definitions.
-use std::collections::BTreeSet;
+use std::{cmp, vec};
 
 use crate::{Position, Selection};
 
@@ -19,10 +19,26 @@ pub enum SelectionDelta<'a> {
     },
 }
 
-/// Wrapper to override selection delta comparison to hold a proper order within
-/// `SelectionDeltas`.
-#[derive(Debug, PartialEq, Eq)]
-struct SelectionDeltaWrapper<'a>(SelectionDelta<'a>);
+impl PartialOrd for SelectionDelta<'_> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        match self.from_pos().partial_cmp(&other.from_pos()) {
+            Some(std::cmp::Ordering::Equal) => {
+                if matches!(self, SelectionDelta::Deleted(_)) {
+                    Some(std::cmp::Ordering::Less)
+                } else {
+                    Some(std::cmp::Ordering::Greater)
+                }
+            }
+            other => other,
+        }
+    }
+}
+
+impl Ord for SelectionDelta<'_> {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.partial_cmp(other).expect("total order defined")
+    }
+}
 
 impl SelectionDelta<'_> {
     /// Shortcut to get `from` coordinate required for comparison
@@ -34,56 +50,51 @@ impl SelectionDelta<'_> {
     }
 }
 
-impl PartialOrd for SelectionDeltaWrapper<'_> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.0.from_pos().partial_cmp(&other.0.from_pos()) {
-            Some(std::cmp::Ordering::Equal) => {
-                if matches!(self.0, SelectionDelta::Deleted(_)) {
-                    Some(std::cmp::Ordering::Less)
-                } else {
-                    Some(std::cmp::Ordering::Greater)
-                }
-            }
-            other => other,
-        }
-    }
-}
-
-impl Ord for SelectionDeltaWrapper<'_> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).expect("total ordering is defined")
-    }
-}
-
-/// Collection of selection deltas.
+/// Collection of sorted selection deltas.
+/// Works better when pushing deltas in order (ordered by `from`, `Deleted`
+/// first on collision).
 #[derive(Debug)]
 pub struct SelectionDeltas<'a> {
-    selections: BTreeSet<SelectionDeltaWrapper<'a>>,
+    deltas: Vec<SelectionDelta<'a>>,
 }
 
 impl<'a> SelectionDeltas<'a> {
     /// Create empty deltas collection
     pub(crate) fn new() -> Self {
+        SelectionDeltas { deltas: Vec::new() }
+    }
+
+    /// Create empty deltas collection with size hint
+    pub(crate) fn with_capacity(n: usize) -> Self {
         SelectionDeltas {
-            selections: BTreeSet::new(),
+            deltas: Vec::with_capacity(n),
         }
     }
 
     /// Adds delta for a deleted selection
-    pub(crate) fn add_deleted(&mut self, s: Selection) {
-        self.selections
-            .insert(SelectionDeltaWrapper(SelectionDelta::Deleted(s)));
+    pub(crate) fn push_deleted(&mut self, s: Selection) {
+        self.push(SelectionDelta::Deleted(s));
     }
 
     /// Adds delta for a created selection
-    pub(crate) fn add_created(&mut self, s: &'a Selection) {
-        self.selections
-            .insert(SelectionDeltaWrapper(SelectionDelta::Created(s)));
+    pub(crate) fn push_created(&mut self, s: &'a Selection) {
+        self.push(SelectionDelta::Created(s));
     }
 
     /// Returns iterator over selection deltas keeping their order (in case of
     /// `Updated` it will order by its old state)
-    pub fn into_iter(self) -> impl Iterator<Item = SelectionDelta<'a>> {
-        self.selections.into_iter().map(|x| x.0)
+    pub fn into_iter(self) -> vec::IntoIter<SelectionDelta<'a>> {
+        self.deltas.into_iter()
+    }
+
+    /// Puts the delta on the top of vec, reorders if needed.
+    fn push(&mut self, delta: SelectionDelta<'a>) {
+        if self.deltas.last().map(|last| last < &delta).unwrap_or(true) {
+            // If order is maintained just put delta in the end
+            self.deltas.push(delta);
+        } else {
+            self.deltas.push(delta);
+            self.deltas.sort(); // TODO no need to check all vector
+        }
     }
 }
