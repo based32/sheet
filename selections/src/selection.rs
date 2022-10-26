@@ -46,18 +46,19 @@ impl Default for Selection {
 impl Selection {
     /// Build new selection from two positions setting proper direction
     /// depending on order.
-    pub(crate) fn new(mut from: Position, mut to: Position) -> Self {
-        let direction = if from > to {
-            mem::swap(&mut from, &mut to);
-            SelectionDirection::Backward
+    pub fn new(mut anchor: Position, mut cursor: Position) -> Self {
+        if anchor > cursor {
+            Selection {
+                from: cursor,
+                to: anchor,
+                direction: SelectionDirection::Backward,
+            }
         } else {
-            SelectionDirection::Forward
-        };
-        Selection {
-            from,
-            to,
-            direction,
-            ..Default::default()
+            Selection {
+                from: anchor,
+                to: cursor,
+                direction: SelectionDirection::Forward,
+            }
         }
     }
 

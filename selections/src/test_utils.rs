@@ -47,8 +47,10 @@ macro_rules! selections_test {
         let mut $storage = $crate::SelectionStorage::new_empty();
 
         $($storage.insert(
-            $crate::Position::new($left_from, $left_to),
-            $crate::Position::new($right_from, $right_to));
+	    $crate::Selection::new(
+		$crate::Position::new($left_from, $left_to),
+		$crate::Position::new($right_from, $right_to)
+	    ));
         )*
 
         let deltas = { $($body)* };
@@ -148,11 +150,11 @@ macro_rules! selections_test {
     ) $($rest:tt)* ) => {
         selections_test! { @deltas_exp $_deltas_pos ($n) [
             $($acc)*
-            $crate::SelectionDelta::Deleted(::std::boxed::Box::new($crate::Selection {
+            $crate::SelectionDelta::Deleted($crate::Selection {
                 from: $crate::Position::new($left_from, $left_to),
                 to: $crate::Position::new($right_from, $right_to),
                 ..::std::default::Default::default()
-            })),
+            }),
         ] $($rest)* }
     };
 
@@ -165,11 +167,11 @@ macro_rules! selections_test {
         selections_test! { @deltas_exp $deltas_pos ($n + 1) [
             $($acc)*
             $crate::SelectionDelta::Updated{
-                old: ::std::boxed::Box::new($crate::Selection {
+                old: $crate::Selection {
                     from: $crate::Position::new($old_left_from, $old_left_to),
                     to: $crate::Position::new($old_right_from, $old_right_to),
                     ..::std::default::Default::default()
-                }),
+                },
                 new: &$deltas_pos[$n],
             },
         ] $($rest)* }
