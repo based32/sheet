@@ -32,4 +32,10 @@ impl SelectionStorage {
             selections: Vec::new(),
         }
     }
+
+    #[cfg(debug_assertions)]
+    /// Verify if selections are kept sorted.
+    fn is_sorted(&self) -> bool {
+	self.selections.as_slice().windows(2).all(|w| w[0].from() <= w[1].from())
+    }
 }

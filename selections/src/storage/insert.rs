@@ -1,3 +1,5 @@
+use std::{borrow::Cow, cmp};
+
 use super::{Position, SelectionStorage};
 use crate::{Selection, SelectionDeltas, SelectionDirection};
 
@@ -18,12 +20,37 @@ impl SelectionStorage {
     /// Insert a selection bounded by `from` and `to` positions. If inserted
     /// selection overlaps with an existing one(s) it either will be replaced
     /// (`replace == true`) or merged (`replace == false`).
-    fn insert_internal(
-        &mut self,
-        mut from: Position,
-        mut to: Position,
-        replace: bool,
-    ) -> SelectionDeltas {
+    fn insert_internal(&mut self, from: Position, to: Position, replace: bool) -> SelectionDeltas {
+        let overlapping_indicies = self.find_overlapping_indicies(&from, &to);
+
+        // Replace first overlapping selection with a new one, others should be removed:
+        let created_selection = if replace {
+            Selection::new(from, to)
+        } else {
+            if let Some(range) = overlapping_indicies {
+                let min_from = cmp::min(
+                    Cow::Borrowed(self.selections[*range.start()].from()),
+                    Cow::Owned(from),
+                );
+                let max_to = cmp::max(
+                    Cow::Borrowed(self.selections[*range.end()].to()),
+                    Cow::Owned(to),
+                );
+                Selection::new(min_from.into_owned(), max_to.into_owned())
+            } else {
+                Selection::new(from, to)
+            }
+        };
+
+	// TODO: fast multi-deletion with returning of deleted values
+
+	// TODO: size hint in case of switching to Vec
+        let mut deltas = SelectionDeltas::new();
+
+	deltas.add_created(created_selection);
+	
+
+        debug_assert!(self.is_sorted());
         todo!()
     }
 }
