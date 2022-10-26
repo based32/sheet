@@ -24,89 +24,14 @@ impl SelectionStorage {
         mut to: Position,
         replace: bool,
     ) -> SelectionDeltas {
-        // If inserted selection has reversed oreder of coordinates we'll note it using
-        // `SelectionDirection`. Coordinates should be reversed back though because of
-        // how we store it.
-        let direction = if from > to {
-            std::mem::swap(&mut from, &mut to);
-            SelectionDirection::Backward
-        } else {
-            SelectionDirection::Forward
-        };
-
-        // Search for a possible collision
-        let (mut new_from, mut new_to) = (None, None);
-
-        let mut deltas = SelectionDeltas::new();
-
-        // Check left neighbor
-        let mut left_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&from));
-        if let Some(left) = left_collision_cursor.get() {
-            if left.from <= from && left.to >= from {
-                // Collision with left neighbor
-                if !replace {
-                    new_from = Some(left.from.clone());
-                }
-                let deleted = left_collision_cursor.remove().expect("not a null object");
-                deltas.add_deleted(deleted);
-            }
-        }
-        // If selection is one char long next checks could be bypassed.
-        if from != to {
-            // Check right neighbor
-            let mut right_collision_cursor = self.tree.upper_bound_mut(Bound::Included(&to));
-            if let Some(right) = right_collision_cursor.get() {
-                if right.from <= to && right.to >= to {
-                    // Collision with right neighbor
-                    if !replace {
-                        new_to = Some(right.to.clone());
-                    }
-                    let deleted = right_collision_cursor.remove().expect("not a null object");
-                    deltas.add_deleted(deleted);
-
-                    // After removal it starts to point to the next item, but for absorbed
-                    // selections we want to go backwards.
-                    right_collision_cursor.move_prev();
-                }
-            }
-
-            // Check absorbed selections
-            while let Some(selection) = right_collision_cursor.get() {
-                if selection.from >= from && selection.to <= to {
-                    let deleted = right_collision_cursor.remove().expect("not a null object");
-                    deltas.add_deleted(deleted);
-                    right_collision_cursor.move_prev();
-                } else {
-                    break;
-                }
-            }
-        }
-
-        let created = if replace {
-            self.tree.insert(Box::new(Selection {
-                from,
-                to,
-                direction,
-            }))
-        } else {
-            self.tree.insert(Box::new(Selection {
-                from: new_from.unwrap_or(from),
-                to: new_to.unwrap_or(to),
-                direction,
-            }))
-        }
-        .into_ref()
-        .expect("not a null object");
-        deltas.add_created(created);
-
-        deltas
+        todo!()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::util::selections_test;
+    use crate::test_utils::selections_test;
 
     #[test]
     fn insert_reversed() {
