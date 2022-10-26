@@ -14,10 +14,14 @@ method that changes ~SelectionStorage~ state returns ~SelectionDelta~.
 equal to each other, in this case it will be selection of 1 character, or different, but ~to~
 is always after ~from~.
 
+For public API ~Selection~ is a pair of ~anchor~ and ~cursor~ to avoid confusion, on the other hand
+internal representation relies on ~from~ and ~to~ coordinates to keep ordering and simply use a flag to
+know where the cursor is.
+
 ** Selection direction
 
 ~SelectionDirection~ could be ~Forward~ or ~Backward~, the former means that ~to~ position is
-considered as insert and movement position. Default direction is ~Forward~.
+considered as insert and movement position (~cursor~). Default direction is ~Forward~.
 
 ** Position
 
@@ -100,3 +104,19 @@ Movements add some amount of complexity to selections structure: a sticky column
 case if cursor's column index is greater than line length on vertical movement it should take
 its place on the line's end, but on subsequent vertical movements it should try to retrieve
 it's original column position if possible until it's dropped by horizontal movement.
+
+
+* Implementation details
+
+** Project structure
+
+Basically selections library is split by its subjects: ~Position~, then ~Selection~ made of ~Position~,
+then ~SelectionStorage~ too keep ~Selections~ and ~Delta~ s to return.
+
+Internally ~Position~ could be "moved" independently, to get a new ~Position~, this acts as a building
+block for higher level movement: ~Selection~ movement. ~SelectionStorage~, in turn, provides the highest
+level movement controls and resolves possible collisions.
+
+** Actual selections storage
+
+To store selections a sorted ~Vec<Selection>~ is used.

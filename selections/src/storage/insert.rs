@@ -21,7 +21,7 @@ impl SelectionStorage {
     /// selection overlaps with an existing one(s) it either will be replaced
     /// (`replace == true`) or merged (`replace == false`).
     fn insert_internal(&mut self, selection: Selection, replace: bool) -> SelectionDeltas {
-        let deltas = match self.find_overlapping_indicies(&selection.from(), &selection.to()) {
+        let deltas = match self.find_overlapping_indicies(&selection.from, &selection.to) {
             Ok(overlapping_indicies) => {
                 // Build selection to insert depending on `replace` parameter:
                 let selection_to_insert = if replace {
@@ -29,11 +29,11 @@ impl SelectionStorage {
                 } else {
                     let direction = selection.direction;
                     let min_from = cmp::min(
-                        Cow::Borrowed(self.selections[*overlapping_indicies.start()].from()),
+                        Cow::Borrowed(&self.selections[*overlapping_indicies.start()].from),
                         Cow::Owned(selection.from),
                     );
                     let max_to = cmp::max(
-                        Cow::Borrowed(self.selections[*overlapping_indicies.end()].to()),
+                        Cow::Borrowed(&self.selections[*overlapping_indicies.end()].to),
                         Cow::Owned(selection.to),
                     );
                     Selection {
