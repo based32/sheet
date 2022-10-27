@@ -23,6 +23,11 @@ impl SelectionStorage {
             .ok()
     }
 
+    /// Find a Selection by its `from` component.
+    pub(crate) fn find_index_by_id(&self, from: &Position) -> Option<SelectionIndex> {
+        self.selections.binary_search_by(|s| s.from.cmp(from)).ok()
+    }
+
     /// Find the range of indicies of Selections that overlaps with the provided
     /// one. `Err` case means no overlaps and points to insertion position.
     pub(crate) fn find_overlapping_indicies(
