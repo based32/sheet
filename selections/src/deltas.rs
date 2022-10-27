@@ -58,6 +58,12 @@ pub struct SelectionDeltas<'a> {
     deltas: Vec<SelectionDelta<'a>>,
 }
 
+impl Default for SelectionDeltas<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> SelectionDeltas<'a> {
     /// Create empty deltas collection
     pub(crate) fn new() -> Self {

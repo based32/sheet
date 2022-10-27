@@ -1,7 +1,9 @@
+//! Movement implementations for a single selection.
+
 use crate::{LineLength, Selection, SelectionDirection};
 
 impl Selection {
-    pub(super) fn move_left(
+    pub(crate) fn move_left(
         &self,
         line_lengths: &impl LineLength,
         n: usize,
@@ -29,7 +31,7 @@ impl Selection {
         }
     }
 
-    pub(super) fn move_right(
+    pub(crate) fn move_right(
         &self,
         line_lengths: &impl LineLength,
         n: usize,
@@ -57,7 +59,7 @@ impl Selection {
         }
     }
 
-    pub(super) fn move_up(
+    pub(crate) fn move_up(
         &self,
         line_lengths: &impl LineLength,
         n: usize,
@@ -85,7 +87,7 @@ impl Selection {
         }
     }
 
-    pub(super) fn move_down(
+    pub(crate) fn move_down(
         &self,
         line_lengths: &impl LineLength,
         n: usize,
