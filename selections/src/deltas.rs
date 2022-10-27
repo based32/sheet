@@ -58,6 +58,12 @@ pub struct SelectionDeltas<'a> {
     deltas: Vec<SelectionDelta<'a>>,
 }
 
+impl Default for SelectionDeltas<'_> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> SelectionDeltas<'a> {
     /// Create empty deltas collection
     pub(crate) fn new() -> Self {
@@ -81,6 +87,11 @@ impl<'a> SelectionDeltas<'a> {
         self.push(SelectionDelta::Created(s));
     }
 
+    /// Adds delta for an updated selection
+    pub(crate) fn push_updated(&mut self, old: Selection, new: &'a Selection) {
+        self.push(SelectionDelta::Updated { old, new });
+    }
+
     /// Returns iterator over selection deltas keeping their order (in case of
     /// `Updated` it will order by its old state)
     pub fn into_iter(self) -> vec::IntoIter<SelectionDelta<'a>> {
@@ -94,7 +105,7 @@ impl<'a> SelectionDeltas<'a> {
             self.deltas.push(delta);
         } else {
             self.deltas.push(delta);
-            self.deltas.sort(); // TODO no need to check all vector
+            self.deltas.sort_unstable(); // TODO no need to check all vector
         }
     }
 }

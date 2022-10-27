@@ -46,7 +46,7 @@ impl Default for Selection {
 impl Selection {
     /// Build new selection from two positions setting proper direction
     /// depending on order.
-    pub fn new(mut anchor: Position, mut cursor: Position) -> Self {
+    pub fn new(anchor: Position, cursor: Position) -> Self {
         if anchor > cursor {
             Selection {
                 from: cursor,
@@ -78,5 +78,11 @@ impl Selection {
             SelectionDirection::Forward => &self.to,
             SelectionDirection::Backward => &self.from,
         }
+    }
+
+    /// Check if selection overlaps with another
+    fn overlaps(&self, other: &Self) -> bool {
+        (self.from >= other.from && self.from <= other.to)
+            || (self.to >= other.from && self.to <= other.to)
     }
 }

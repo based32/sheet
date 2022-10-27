@@ -119,4 +119,5 @@ level movement controls and resolves possible collisions.
 
 ** Actual selections storage
 
-To store selections a sorted ~Vec<Selection>~ is used.
+To store selections a sorted ~Vec<Selection>~ is used. ~Selections~ are ordered by ~from~ component and
+it's also treated as their identifier in case specific ~Selection~ needs to be addressed.
