@@ -96,7 +96,7 @@ impl SelectionStorage {
             } else if start == &exclude {
                 Ok(start + 1..=*end)
             } else if end == &exclude {
-                Ok(*start..=*end + 1)
+                Ok(*start..=*end - 1)
             } else {
                 Ok(range)
             }

@@ -1,3 +1,9 @@
+//! Test for movement API of [SelectionStorage].
+//! As isolated selection movements are implemented and tested separately for
+//! each case, tests in this module will assume that individual selection is
+//! moved correctly and will check only how it affects [SelectionStorage] state
+//! rather than forward/backward/multiline combinations.
+
 use crate::{
     test_utils::{selections_test, TestLineLengths},
     Position,
@@ -5,6 +11,10 @@ use crate::{
 
 #[rustfmt::skip]
 mod left_single {
+    // It's the first time when all [SelectionDelta] varians are checked, some
+    // cominations of selections' tests will be used to ensure [selections_test]
+    // macro works fine. Other submodules not necessarily cover it.
+
     use super::*;
 
     #[test]
@@ -75,7 +85,7 @@ mod left_single {
             ],
             [
                 (0, 0) - (0, 0),
-		(0, 3) - (0, 3),
+        (0, 3) - (0, 3),
                 (0, 5) - (0, 10),
             ]
         };
@@ -101,6 +111,79 @@ mod left_single {
             [
                 (0, 0) - (0, 0),
 		(0, 4) - (0, 4),
+            ]
+        };
+    }
+
+    #[test]
+    fn backward_same_line_extend_no_overlap() {
+        selections_test! {
+            [
+                (0, 0) - (0, 0),
+                (1, 2) - (0, 5),
+            ],
+            storage -> {
+                let line_lengths = TestLineLengths::new();
+                storage.move_left_single(line_lengths, &Position::new(0, 5), 1, true)
+            },
+            [
+                Updated {
+                    old: (1, 2) - (0, 5),
+                    new: (1, 2) - (0, 4),
+                }
+            ],
+            [
+                (0, 0) - (0, 0),
+		(1, 2) - (0, 4),
+            ]
+        };
+    }
+
+    #[test]
+    fn forward_same_line_extend_reverse_no_overlap() {
+        selections_test! {
+            [
+                (0, 0) - (0, 0),
+                (0, 5) - (0, 10),
+            ],
+            storage -> {
+                let line_lengths = TestLineLengths::new();
+                storage.move_left_single(line_lengths, &Position::new(0, 5), 6, true)
+            },
+            [
+                Updated {
+                    old: (0, 5) - (0, 10),
+                    new: (0, 5) - (0, 4),
+                }
+            ],
+            [
+                (0, 0) - (0, 0),
+		(0, 5) - (0, 4),
+            ]
+        };
+    }
+
+    #[test]
+    fn overlap_one_edge_extend() {
+        selections_test! {
+            [
+                (0, 0) - (0, 5),
+                (0, 10) - (1, 2),
+            ],
+            storage -> {
+                let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 10);
+                storage.move_left_single(line_lengths, &Position::new(0, 10), 10, true)
+            },
+            [
+		Deleted((0, 0) - (0, 5)),
+                Updated {
+                    old: (0, 10) - (1, 2),
+                    new: (0, 10) - (0, 0),
+                }
+            ],
+            [
+                (0, 10) - (0, 0),
             ]
         };
     }
