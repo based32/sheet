@@ -1,4 +1,4 @@
-use std::mem;
+use std::{cmp, mem};
 
 use super::SelectionStorage;
 use crate::{LineLength, Position, SelectionDeltas};
@@ -19,7 +19,7 @@ impl SelectionStorage {
         }
 
         if let Some(idx_old) = self.find_index_by_id(id) {
-            let selection_new = self.selections[idx_old].move_left(&line_lengths, n, extend);
+            let mut selection_new = self.selections[idx_old].move_left(&line_lengths, n, extend);
 
             let idx_new = self.find_overlapping_indicies_exlude(
                 &selection_new.from,
@@ -55,12 +55,17 @@ impl SelectionStorage {
                     let end_idx = *range.end();
                     let mut deltas = SelectionDeltas::default();
 
-                    // Update a selection leaving it at the same place to refer to it later:
+                    // In case of `extend` overwritten selection must become a part of the updated
+                    // selection.
+                    if extend && self.selections[start_idx].from < selection_new.from {
+                        selection_new.from = self.selections[start_idx].from.clone();
+                    }
+
+                    // Update a selection leaving it at the same place, as those on the left will
+                    // be removed anyway.
                     let selection_old = mem::replace(&mut self.selections[idx_old], selection_new);
-                    if start_idx < end_idx {
-                        for s in self.selections.drain(start_idx + 1..end_idx) {
-                            deltas.push_deleted(s);
-                        }
+                    for s in self.selections.drain(start_idx..=end_idx) {
+                        deltas.push_deleted(s);
                     }
                     deltas.push_updated(selection_old, &self.selections[start_idx]);
                     deltas
