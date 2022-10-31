@@ -87,6 +87,11 @@ impl<'a> SelectionDeltas<'a> {
         self.push(SelectionDelta::Created(s));
     }
 
+    /// Adds delta for an updated selection
+    pub(crate) fn push_updated(&mut self, old: Selection, new: &'a Selection) {
+        self.push(SelectionDelta::Updated { old, new });
+    }
+
     /// Returns iterator over selection deltas keeping their order (in case of
     /// `Updated` it will order by its old state)
     pub fn into_iter(self) -> vec::IntoIter<SelectionDelta<'a>> {
