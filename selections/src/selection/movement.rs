@@ -1,34 +1,24 @@
 //! Movement implementations for a single selection.
 
-use crate::{LineLength, Selection, SelectionDirection};
+use crate::{LineLength, Position, Selection, SelectionDirection};
 
 impl Selection {
+    fn move_generic(&self, extend: bool, move_fn: impl Fn(&Position) -> Position) -> Selection {
+        let cursor = move_fn(self.cursor());
+        if extend {
+            Selection::new(self.anchor().clone(), cursor)
+        } else {
+            Selection::new(cursor.clone().remove_sticky(), cursor)
+        }
+    }
+
     pub(crate) fn move_left(
         &self,
         line_lengths: &impl LineLength,
         n: usize,
         extend: bool,
     ) -> Selection {
-        match self.direction {
-            SelectionDirection::Backward => {
-                let from = self.from.move_left(line_lengths, n);
-                let to = if !extend {
-                    from.clone()
-                } else {
-                    self.to.clone()
-                };
-                Selection::new(to, from)
-            }
-            SelectionDirection::Forward => {
-                let to = self.to.move_left(line_lengths, n);
-                let from = if !extend {
-                    to.clone()
-                } else {
-                    self.from.clone()
-                };
-                Selection::new(from, to)
-            }
-        }
+        self.move_generic(extend, |p| p.move_left(line_lengths, n))
     }
 
     pub(crate) fn move_right(
@@ -37,26 +27,7 @@ impl Selection {
         n: usize,
         extend: bool,
     ) -> Selection {
-        match self.direction {
-            SelectionDirection::Backward => {
-                let from = self.from.move_right(line_lengths, n);
-                let to = if !extend {
-                    from.clone()
-                } else {
-                    self.to.clone()
-                };
-                Selection::new(to, from)
-            }
-            SelectionDirection::Forward => {
-                let to = self.to.move_right(line_lengths, n);
-                let from = if !extend {
-                    to.clone()
-                } else {
-                    self.from.clone()
-                };
-                Selection::new(from, to)
-            }
-        }
+        self.move_generic(extend, |p| p.move_right(line_lengths, n))
     }
 
     pub(crate) fn move_up(
@@ -65,26 +36,7 @@ impl Selection {
         n: usize,
         extend: bool,
     ) -> Selection {
-        match self.direction {
-            SelectionDirection::Backward => {
-                let from = self.from.move_up(line_lengths, n);
-                let to = if !extend {
-                    from.clone().remove_sticky()
-                } else {
-                    self.to.clone()
-                };
-                Selection::new(to, from)
-            }
-            SelectionDirection::Forward => {
-                let to = self.to.move_up(line_lengths, n);
-                let from = if !extend {
-                    to.clone().remove_sticky()
-                } else {
-                    self.from.clone()
-                };
-                Selection::new(from, to)
-            }
-        }
+        self.move_generic(extend, |p| p.move_up(line_lengths, n))
     }
 
     pub(crate) fn move_down(
@@ -93,25 +45,6 @@ impl Selection {
         n: usize,
         extend: bool,
     ) -> Selection {
-        match self.direction {
-            SelectionDirection::Backward => {
-                let from = self.from.move_down(line_lengths, n);
-                let to = if !extend {
-                    from.clone()
-                } else {
-                    self.to.clone()
-                };
-                Selection::new(to, from)
-            }
-            SelectionDirection::Forward => {
-                let to = self.to.move_down(line_lengths, n);
-                let from = if !extend {
-                    to.clone().remove_sticky()
-                } else {
-                    self.from.clone()
-                };
-                Selection::new(from, to)
-            }
-        }
+        self.move_generic(extend, |p| p.move_down(line_lengths, n))
     }
 }

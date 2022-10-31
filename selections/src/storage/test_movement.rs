@@ -66,32 +66,6 @@ mod left_single {
     }
 
     #[test]
-    fn forward_same_line_step_over_no_overlap() {
-        selections_test! {
-            [
-                (0, 0) - (0, 0),
-                (0, 5) - (0, 10),
-		(0, 15) - (0, 15),
-            ],
-            storage -> {
-                let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 15), 12, false)
-            },
-            [
-                Updated {
-                    old: (0, 15) - (0, 15),
-                    new: (0, 3) - (0, 3),
-                }
-            ],
-            [
-                (0, 0) - (0, 0),
-        (0, 3) - (0, 3),
-                (0, 5) - (0, 10),
-            ]
-        };
-    }
-
-    #[test]
     fn backward_same_line_no_extend_no_overlap() {
         selections_test! {
             [
@@ -164,6 +138,57 @@ mod left_single {
     }
 
     #[test]
+    fn step_over_no_overlap() {
+        selections_test! {
+            [
+                (0, 0) - (0, 0),
+                (0, 5) - (0, 10),
+		(0, 15) - (0, 15),
+            ],
+            storage -> {
+                let line_lengths = TestLineLengths::new();
+                storage.move_left_single(line_lengths, &Position::new(0, 15), 12, false)
+            },
+            [
+                Updated {
+                    old: (0, 15) - (0, 15),
+                    new: (0, 3) - (0, 3),
+                }
+            ],
+            [
+                (0, 0) - (0, 0),
+		(0, 3) - (0, 3),
+                (0, 5) - (0, 10),
+            ]
+        };
+    }
+
+    #[test]
+    fn overlap_one_edge_no_extend() {
+        selections_test! {
+            [
+                (0, 0) - (0, 5),
+                (0, 10) - (0, 15),
+            ],
+            storage -> {
+                let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 10);
+                storage.move_left_single(line_lengths, &Position::new(0, 10), 12, false)
+            },
+            [
+		Deleted((0, 0) - (0, 5)),
+                Updated {
+                    old: (0, 10) - (0, 15),
+                    new: (0, 3) - (0, 3),
+                }
+            ],
+            [
+                (0, 3) - (0, 3),
+            ]
+        };
+    }
+
+    #[test]
     fn overlap_one_edge_extend() {
         selections_test! {
             [
@@ -186,5 +211,39 @@ mod left_single {
                 (0, 10) - (0, 0),
             ]
         };
+    }
+
+    #[test]
+    fn overlap_many() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 0),
+		(0, 3) - (0, 8),
+		(0, 15) - (1, 2),
+		(3, 7) - (1, 3),
+		(4, 20) - (13, 37),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 10);
+		line_lengths.set(1, 10);
+		line_lengths.set(2, 10);
+		line_lengths.set(3, 10);
+                storage.move_left_single(line_lengths, &Position::new(1, 3), 69, true)
+	    },
+	    [
+		Deleted((0, 0) - (0, 0)),
+		Deleted((0, 3) - (0, 8)),
+		Deleted((0, 15) - (1, 2)),
+		Updated {
+		    old: (3, 7) - (1, 3),
+		    new: (3, 7) - (0, 0),
+		},
+	    ],
+	    [
+		(3, 7) - (0, 0),
+		(4, 20) - (13, 37),
+	    ]
+	}
     }
 }
