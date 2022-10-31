@@ -105,7 +105,7 @@ impl<'a> SelectionDeltas<'a> {
             self.deltas.push(delta);
         } else {
             self.deltas.push(delta);
-            self.deltas.sort(); // TODO no need to check all vector
+            self.deltas.sort_unstable(); // TODO no need to check all vector
         }
     }
 }
