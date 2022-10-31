@@ -1,11 +1,12 @@
 /// Test helper macro that simplifies definition of selections storage state
 /// and expectations after executing some actions.
-/// For better transparency it has no default selection (`(0, 0)` to `(0, 1)`).
+/// For better transparency it has no default selection.
 ///
 /// # Structure
 /// - First arg is initial state and represented as array of selections;
-/// - selection is pair of two positions: (from_line, from_col) - (to_line,
-///   to_col);
+/// - selection is pair of two positions: (anchor_line, anchor_col) -
+///   (cursor_line, cursor_col); if the cursor is before the anchor it'll mark
+///   it as `backwards`.
 /// - second arg is a selection storage binding -> { code block to execture };
 ///   (must return deltas to compare next)
 /// - third arg is an array of deltas;
@@ -107,8 +108,8 @@ macro_rules! selections_test {
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Deleted` variant we do nothing).
     (@deltas_selections [$($acc:tt)*] $(,)? Deleted(
-        ($left_from:expr, $left_to:expr) -
-        ($right_from:expr, $right_to:expr)
+        ($left_anchor:expr, $left_cursor:expr) -
+        ($right_anchor:expr, $right_cursor:expr)
     ) $($rest:tt)*) => {
         selections_test! { @deltas_selections [
             $($acc)*
@@ -134,8 +135,8 @@ macro_rules! selections_test {
 
     // Incremental builder of array of expected deltas (`Created` variant)
     (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Created(
-        ($left_from:expr, $left_to:expr) -
-        ($right_from:expr, $right_to:expr)
+        ($left_anchor:expr, $left_cursor:expr) -
+        ($right_anchor:expr, $right_cursor:expr)
     ) $($rest:tt)*) => {
         selections_test! { @deltas_exp $deltas_pos ($n + 1) [
             $($acc)*
@@ -145,33 +146,33 @@ macro_rules! selections_test {
 
     // Incremental builder of array of expected deltas (`Deleted` variant)
     (@deltas_exp $_deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Deleted(
-        ($left_from:expr, $left_to:expr) -
-        ($right_from:expr, $right_to:expr)
+        ($left_anchor:expr, $left_cursor:expr) -
+        ($right_anchor:expr, $right_cursor:expr)
     ) $($rest:tt)* ) => {
         selections_test! { @deltas_exp $_deltas_pos ($n) [
             $($acc)*
-            $crate::SelectionDelta::Deleted($crate::Selection {
-                from: $crate::Position::new($left_from, $left_to),
-                to: $crate::Position::new($right_from, $right_to),
-                ..::std::default::Default::default()
-            }),
+            $crate::SelectionDelta::Deleted($crate::Selection::new(
+                $crate::Position::new($left_anchor, $left_cursor),
+                $crate::Position::new($right_anchor, $right_cursor),
+            )),
         ] $($rest)* }
     };
 
     // Incremental builder of array of expected deltas (`Updated` variant)
     (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Updated {
-        old: ($old_left_from:expr, $old_left_to:expr) - ($old_right_from:expr, $old_right_to:expr),
-        new: ($new_left_from:expr, $new_left_to:expr) - ($new_right_from:expr, $new_right_to:expr)
+        old: ($old_left_anchor:expr, $old_left_cursor:expr)
+	    - ($old_right_anchor:expr, $old_right_cursor:expr),
+        new: ($new_left_anchor:expr, $new_left_cursor:expr)
+	    - ($new_right_anchor:expr, $new_right_cursor:expr)
         $(,)?
     } $($rest:tt)* ) => {
         selections_test! { @deltas_exp $deltas_pos ($n + 1) [
             $($acc)*
             $crate::SelectionDelta::Updated{
-                old: $crate::Selection {
-                    from: $crate::Position::new($old_left_from, $old_left_to),
-                    to: $crate::Position::new($old_right_from, $old_right_to),
-                    ..::std::default::Default::default()
-                },
+                old: $crate::Selection::new(
+                    $crate::Position::new($old_left_anchor, $old_left_cursor),
+                    $crate::Position::new($old_right_anchor, $old_right_cursor),
+                ),
                 new: &$deltas_pos[$n],
             },
         ] $($rest)* }
