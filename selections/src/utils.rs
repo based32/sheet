@@ -10,6 +10,12 @@ pub(crate) struct UniqueSortedVec<T> {
     vec: Vec<T>,
 }
 
+impl<T> Default for UniqueSortedVec<T> {
+    fn default() -> Self {
+	Self::new()
+    }
+}
+
 impl<T> Deref for UniqueSortedVec<T> {
     type Target = Vec<T>;
 

@@ -4,12 +4,10 @@ mod movement;
 #[cfg(test)]
 mod test_movement;
 
-use std::mem;
-
 use super::Position;
 
 /// Selection is a pair of coordinates in a document.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
     pub(crate) from: Position,
     pub(crate) to: Position,
@@ -24,14 +22,6 @@ pub enum SelectionDirection {
     /// Means cursor is before selection
     Backward,
 }
-
-impl PartialEq for Selection {
-    fn eq(&self, other: &Self) -> bool {
-        self.from == other.from && self.to == other.to && self.direction == other.direction
-    }
-}
-
-impl Eq for Selection {}
 
 impl Default for Selection {
     fn default() -> Self {

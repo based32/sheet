@@ -1,6 +1,5 @@
 //! [SelectionStorage] declaration and implementation.
 
-mod batch;
 mod get;
 mod insert;
 mod movement;
