@@ -8,6 +8,7 @@ mod selection;
 mod storage;
 #[cfg(test)]
 mod test_utils;
+mod utils;
 
 pub use deltas::{SelectionDelta, SelectionDeltas};
 pub use position::Position;

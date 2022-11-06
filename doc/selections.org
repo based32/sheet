@@ -105,6 +105,17 @@ case if cursor's column index is greater than line length on vertical movement i
 its place on the line's end, but on subsequent vertical movements it should try to retrieve
 it's original column position if possible until it's dropped by horizontal movement.
 
+* Batch operations
+
+~SelectionStorage~ supports application of multiple operations at once. Provided batch will be
+reordered as follows:
+
+1. Insertion
+2. Movement (that means in case of collision inserted selection may not be listed at deltas at all,
+   because there are no changes to selection storage regarding it)
+3. Deletion (no matter if insertions or movements had place, it will be deleted if there is an
+   operation in a batch for it).
+
 
 * Implementation details
 

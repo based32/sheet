@@ -1,7 +1,7 @@
 //! Selection deltas definitions.
 use std::{cmp, vec};
 
-use crate::{Position, Selection};
+use crate::{utils::UniqueSortedVec, Position, Selection};
 
 /// Info on changed selection.
 #[derive(Debug, PartialEq, Eq)]
@@ -55,7 +55,7 @@ impl SelectionDelta<'_> {
 /// first on collision).
 #[derive(Debug)]
 pub struct SelectionDeltas<'a> {
-    deltas: Vec<SelectionDelta<'a>>,
+    deltas: UniqueSortedVec<SelectionDelta<'a>>,
 }
 
 impl Default for SelectionDeltas<'_> {
@@ -67,45 +67,36 @@ impl Default for SelectionDeltas<'_> {
 impl<'a> SelectionDeltas<'a> {
     /// Create empty deltas collection
     pub(crate) fn new() -> Self {
-        SelectionDeltas { deltas: Vec::new() }
+        SelectionDeltas {
+            deltas: UniqueSortedVec::new(),
+        }
     }
 
     /// Create empty deltas collection with size hint
     pub(crate) fn with_capacity(n: usize) -> Self {
         SelectionDeltas {
-            deltas: Vec::with_capacity(n),
+            deltas: UniqueSortedVec::with_capacity(n),
         }
     }
 
     /// Adds delta for a deleted selection
     pub(crate) fn push_deleted(&mut self, s: Selection) {
-        self.push(SelectionDelta::Deleted(s));
+        self.deltas.push(SelectionDelta::Deleted(s));
     }
 
     /// Adds delta for a created selection
     pub(crate) fn push_created(&mut self, s: &'a Selection) {
-        self.push(SelectionDelta::Created(s));
+        self.deltas.push(SelectionDelta::Created(s));
     }
 
     /// Adds delta for an updated selection
     pub(crate) fn push_updated(&mut self, old: Selection, new: &'a Selection) {
-        self.push(SelectionDelta::Updated { old, new });
+        self.deltas.push(SelectionDelta::Updated { old, new });
     }
 
     /// Returns iterator over selection deltas keeping their order (in case of
     /// `Updated` it will order by its old state)
     pub fn into_iter(self) -> vec::IntoIter<SelectionDelta<'a>> {
-        self.deltas.into_iter()
-    }
-
-    /// Puts the delta on the top of vec, reorders if needed.
-    fn push(&mut self, delta: SelectionDelta<'a>) {
-        if self.deltas.last().map(|last| last < &delta).unwrap_or(true) {
-            // If order is maintained just put delta in the end
-            self.deltas.push(delta);
-        } else {
-            self.deltas.push(delta);
-            self.deltas.sort_unstable(); // TODO no need to check all vector
-        }
+        self.deltas.take().into_iter()
     }
 }

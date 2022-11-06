@@ -1,4 +1,4 @@
-use std::{cmp, mem};
+use std::mem;
 
 use super::SelectionStorage;
 use crate::{LineLength, Position, SelectionDeltas};
