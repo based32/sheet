@@ -139,67 +139,69 @@ mod tests {
             selections: vec![
                 Selection::new(Position::new(0, 5), Position::new(1, 10)),
                 Selection::new(Position::new(1, 20), Position::new(2, 10)),
+                Selection::new(Position::new(2, 20), Position::new(4, 10)),
+                Selection::new(Position::new(4, 20), Position::new(7, 11)),
             ],
         };
 
         // Overlap on the right side:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 30),),
+            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 30)),
             Ok(1..=1)
         );
 
         // Overlap on the left side:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(1, 16),),
+            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(1, 16)),
             Ok(0..=0)
         );
 
         // Overlap on both sides:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 5), &Position::new(1, 20),),
+            storage.find_overlapping_indicies(&Position::new(0, 5), &Position::new(1, 20)),
             Ok(0..=1)
         );
 
         // No overlaps in between:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 17),),
+            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 17)),
             Err(1),
         );
 
         // No overlaps before selections:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(0, 3),),
+            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(0, 3)),
             Err(0)
         );
 
         // No overlaps after selections:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(4, 20), &Position::new(13, 37),),
-            Err(2)
+            storage.find_overlapping_indicies(&Position::new(8, 12), &Position::new(13, 37)),
+            Err(4)
         );
 
         // Large selection overlaps all:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(13, 37),),
-            Ok(0..=1),
+            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(13, 37)),
+            Ok(0..=3),
         );
 
         // Query selection absorbs another one:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 3), &Position::new(1, 15),),
+            storage.find_overlapping_indicies(&Position::new(0, 3), &Position::new(1, 15)),
             Ok(0..=0),
         );
 
         // Query selection will be absorbed:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 7), &Position::new(0, 8),),
+            storage.find_overlapping_indicies(&Position::new(0, 7), &Position::new(0, 8)),
             Ok(0..=0),
         );
 
         // Overlap on the left side and then absorb on right:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(16, 20),),
-            Ok(0..=1)
+            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(69, 69)),
+            Ok(0..=3)
         );
     }
 }

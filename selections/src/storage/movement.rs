@@ -39,7 +39,7 @@ impl SelectionStorage {
                 // Still no collisions, but index is changed and in case of
                 // movement to the left it will be less than before, than means
                 // a subset of all selections between old and new indexes
-                // should be moved to the right:
+                // should be moved to the right.
                 debug_assert!(idx < idx_old);
                 // Replace old selection with a new one and do rotation so new selections will
                 // be on the right of updated selection in selections storage sorted vec.
@@ -111,10 +111,19 @@ impl SelectionStorage {
                 // Still no collisions, but index is changed and in case of
                 // movement to the right it will be greater than before, than means
                 // a subset of all selections between old and new indexes
-                // should be moved to the left:
+                // should be moved to the left.
+                //
+                // The difference between left and right movement is that right border of
+                // rotation during left movement was an index of actual selection (previous
+                // state), but in case of right rotation right border is found via
+                // `find_overlapping_indicies_exlude` which points to insertion position, which
+                // is the index of selection to insert _before_ it (or may be out of bounds if
+                // insertion should happen to the vector's end).
+
                 debug_assert!(idx > idx_old);
                 // Replace old selection with a new one and do rotation so new selections will
                 // be on the left of updated selection in selections storage sorted vec.
+                // Note that `idx` is not included this time, explanation is above.
                 let selection_old = mem::replace(&mut self.selections[idx_old], selection_new);
                 self.selections[idx_old..idx].rotate_left(1);
                 let mut deltas = SelectionDeltas::default();
