@@ -12,7 +12,7 @@ pub(crate) struct UniqueSortedVec<T> {
 
 impl<T> Default for UniqueSortedVec<T> {
     fn default() -> Self {
-	Self::new()
+        Self::new()
     }
 }
 
