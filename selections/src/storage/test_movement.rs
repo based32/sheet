@@ -394,22 +394,27 @@ mod right_single {
         selections_test! {
             [
                 (0, 0) - (0, 5),
-                (0, 10) - (1, 2),
+                (0, 10) - (0, 15),
+		(1, 3) - (3, 7),
             ],
             storage -> {
                 let mut line_lengths = TestLineLengths::new();
-		line_lengths.set(0, 10);
-                storage.move_left_single(line_lengths, &Position::new(0, 10), 10, true)
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 10);
+		line_lengths.set(3, 10);
+                storage.move_right_single(line_lengths, &Position::new(0, 10), 9, true)
             },
             [
-		Deleted((0, 0) - (0, 5)),
                 Updated {
-                    old: (0, 10) - (1, 2),
-                    new: (0, 10) - (0, 0),
-                }
+                    old: (0, 10) - (0, 15),
+                    new: (0, 10) - (3,7),
+                },
+		Deleted((1, 3) - (3, 7)),
             ],
             [
-                (0, 10) - (0, 0),
+                (0, 0) - (0, 5),
+		(0, 10) - (3, 7),
             ]
         };
     }
@@ -419,31 +424,33 @@ mod right_single {
         selections_test! {
             [
 		(0, 0) - (0, 0),
-		(0, 3) - (0, 8),
+		(0, 8) - (0, 3),
 		(0, 15) - (1, 2),
 		(3, 7) - (1, 3),
-		(4, 20) - (13, 37),
+		(4, 20) - (5, 37),
             ],
             storage -> {
 		let mut line_lengths = TestLineLengths::new();
-		line_lengths.set(0, 10);
-		line_lengths.set(1, 10);
-		line_lengths.set(2, 10);
-		line_lengths.set(3, 10);
-                    storage.move_left_single(line_lengths, &Position::new(1, 3), 69, true)
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 20);
+		line_lengths.set(3, 20);
+		line_lengths.set(4, 20);
+		line_lengths.set(5, 40);
+                storage.move_right_single(line_lengths, &Position::new(0, 3), 420, true)
             },
             [
-		Deleted((0, 0) - (0, 0)),
-		Deleted((0, 3) - (0, 8)),
-		Deleted((0, 15) - (1, 2)),
 		Updated {
-                    old: (3, 7) - (1, 3),
-                    new: (3, 7) - (0, 0),
+                    old: (0, 8) - (0, 3),
+                    new: (0, 8) - (5, 40),
 		},
+		Deleted((0, 15) - (1, 2)),
+		Deleted((3, 7) - (1, 3)),
+		Deleted((4, 20) - (5, 37)),
             ],
             [
-		(3, 7) - (0, 0),
-		(4, 20) - (13, 37),
+		(0, 0) - (0, 0),
+		(0, 8) - (5, 40),
             ]
         }
     }
