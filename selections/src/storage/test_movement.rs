@@ -365,21 +365,26 @@ mod right_single {
             [
                 (0, 0) - (0, 5),
                 (0, 10) - (0, 15),
+		(1, 3) - (3, 7),
             ],
             storage -> {
                 let mut line_lengths = TestLineLengths::new();
-		line_lengths.set(0, 10);
-                storage.move_left_single(line_lengths, &Position::new(0, 10), 12, false)
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 10);
+		line_lengths.set(3, 10);
+                storage.move_right_single(line_lengths, &Position::new(0, 0), 8, false)
             },
             [
-		Deleted((0, 0) - (0, 5)),
                 Updated {
-                    old: (0, 10) - (0, 15),
-                    new: (0, 3) - (0, 3),
-                }
+                    old: (0, 0) - (0, 5),
+                    new: (0, 13) - (0, 13),
+                },
+		Deleted((0, 10) - (0, 15)),
             ],
             [
-                (0, 3) - (0, 3),
+                (0, 13) - (0, 13),
+		(1, 3) - (3, 7),
             ]
         };
     }

@@ -67,6 +67,8 @@ impl SelectionStorage {
                 for s in self.selections.drain(start_idx..=end_idx) {
                     deltas.push_deleted(s);
                 }
+                // After deletion `idx_old` points to the wrong location, `start_idx` stays as
+                // the left boundary and is reliable:
                 deltas.push_updated(selection_old, &self.selections[start_idx]);
                 deltas
             }
@@ -118,7 +120,9 @@ impl SelectionStorage {
                 // state), but in case of right rotation right border is found via
                 // `find_overlapping_indicies_exlude` which points to insertion position, which
                 // is the index of selection to insert _before_ it (or may be out of bounds if
-                // insertion should happen to the vector's end).
+                // insertion should happen to the vector's end), so that means rotation
+                // boundaries are from `idx_old` to last selection before insertion position
+                // mentioned, and no insertion will even happen.
 
                 debug_assert!(idx > idx_old);
                 // Replace old selection with a new one and do rotation so new selections will
@@ -142,13 +146,14 @@ impl SelectionStorage {
                     selection_new.to = self.selections[end_idx].to.clone();
                 }
 
-                // Update a selection leaving it at the same place, as those on the right will
+                // Update a selection leaving it at the same place, as those on the left will
                 // be removed anyway.
                 let selection_old = mem::replace(&mut self.selections[idx_old], selection_new);
                 for s in self.selections.drain(start_idx..=end_idx) {
                     deltas.push_deleted(s);
                 }
-                deltas.push_updated(selection_old, &self.selections[start_idx]);
+                // `idx_old` wasn't changed after deletion and could be used:
+                deltas.push_updated(selection_old, &self.selections[idx_old]);
                 deltas
             }
         };
