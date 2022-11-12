@@ -31,6 +31,7 @@ impl Position {
         }
     }
 
+    #[cfg(test)]
     /// Creates new position with `line`, `column` and `sticky_column`.
     pub(crate) fn new_with_sticky(line: usize, column: usize, sticky_column: usize) -> Self {
         Position {

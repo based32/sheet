@@ -3,26 +3,13 @@
 use std::{cmp::Ordering, ops::RangeInclusive};
 
 use super::SelectionStorage;
-use crate::{Position, Selection};
+use crate::{Position};
 
-type SelectionIndex = usize;
+pub(super) type SelectionIndex = usize;
 
-type SelectionIndexRange = RangeInclusive<SelectionIndex>;
+pub(super) type SelectionIndexRange = RangeInclusive<SelectionIndex>;
 
 impl SelectionStorage {
-    /// Find the index of a Selection that includes the Position.
-    pub(crate) fn find_including_index(&self, pos: &Position) -> Option<SelectionIndex> {
-        self.selections
-            .binary_search_by(|s| {
-                if &s.from <= pos && &s.to >= pos {
-                    Ordering::Equal
-                } else {
-                    s.from.cmp(pos)
-                }
-            })
-            .ok()
-    }
-
     /// Find a Selection by its `from` component.
     pub(crate) fn find_index_by_id(&self, from: &Position) -> Option<SelectionIndex> {
         self.selections.binary_search_by(|s| s.from.cmp(from)).ok()
@@ -110,28 +97,6 @@ mod tests {
 
     use super::*;
     use crate::Selection;
-
-    #[test]
-    fn find_including_index() {
-        let storage = SelectionStorage {
-            selections: vec![
-                Selection::new(Position::new(0, 0), Position::new(1, 10)),
-                Selection::new(Position::new(1, 20), Position::new(2, 10)),
-            ],
-        };
-
-        // Should hit first selection somewhere in a middle:
-        assert_eq!(storage.find_including_index(&Position::new(0, 20)), Some(0));
-
-        // Should hit second selection somewhere in a middle:
-        assert_eq!(storage.find_including_index(&Position::new(1, 30)), Some(1));
-
-        // Should hit first selection in its end:
-        assert_eq!(storage.find_including_index(&Position::new(1, 10)), Some(0));
-
-        // Should not hit anything:
-        assert_eq!(storage.find_including_index(&Position::new(1, 11)), None);
-    }
 
     #[test]
     fn find_overlapping_indicies() {

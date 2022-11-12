@@ -69,10 +69,4 @@ impl Selection {
             SelectionDirection::Backward => &self.from,
         }
     }
-
-    /// Check if selection overlaps with another
-    fn overlaps(&self, other: &Self) -> bool {
-        (self.from >= other.from && self.from <= other.to)
-            || (self.to >= other.from && self.to <= other.to)
-    }
 }
