@@ -3,7 +3,7 @@
 use std::{cmp::Ordering, ops::RangeInclusive};
 
 use super::SelectionStorage;
-use crate::{Position};
+use crate::Position;
 
 pub(super) type SelectionIndex = usize;
 

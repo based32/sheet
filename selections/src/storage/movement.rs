@@ -1,4 +1,4 @@
-//! [StorageSelection] movements implementation module.
+//! [SelectionStorage] movements implementation module.
 
 use std::{cmp, mem};
 
@@ -107,7 +107,7 @@ impl SelectionStorage {
     /// is `false`.
     pub fn move_left_single(
         &mut self,
-        line_lengths: impl LineLength,
+        line_lengths: &impl LineLength,
         id: &Position,
         n: usize,
         extend: bool,
@@ -120,7 +120,7 @@ impl SelectionStorage {
     /// is `false`.
     pub fn move_right_single(
         &mut self,
-        line_lengths: impl LineLength,
+        line_lengths: &impl LineLength,
         id: &Position,
         n: usize,
         extend: bool,
@@ -133,7 +133,7 @@ impl SelectionStorage {
     /// is `false`.
     pub fn move_up_single(
         &mut self,
-        line_lengths: impl LineLength,
+        line_lengths: &impl LineLength,
         id: &Position,
         n: usize,
         extend: bool,
@@ -146,7 +146,7 @@ impl SelectionStorage {
     /// is `false`.
     pub fn move_down_single(
         &mut self,
-        line_lengths: impl LineLength,
+        line_lengths: &impl LineLength,
         id: &Position,
         n: usize,
         extend: bool,
@@ -158,7 +158,7 @@ impl SelectionStorage {
     fn move_common(
         &mut self,
         direction: MovementDirection,
-        line_lengths: impl LineLength,
+        line_lengths: &impl LineLength,
         id: &Position,
         n: usize,
         extend: bool,
@@ -172,7 +172,7 @@ impl SelectionStorage {
 	};
 
         let mut selection_new =
-            direction.new_selection_state(&self.selections[idx_old], &line_lengths, n, extend);
+            direction.new_selection_state(&self.selections[idx_old], line_lengths, n, extend);
 
         // Find new insertion index or possible overlaps.
         let idx_new =

@@ -26,7 +26,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 1), 1, false)
+                storage.move_left_single(&line_lengths, &Position::new(0, 1), 1, false)
             },
             [
                 Updated {
@@ -50,7 +50,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 5), 10, true)
+                storage.move_left_single(&line_lengths, &Position::new(0, 5), 10, true)
             },
             [
                 Updated {
@@ -74,7 +74,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 5), 1, false)
+                storage.move_left_single(&line_lengths, &Position::new(0, 5), 1, false)
             },
             [
                 Updated {
@@ -98,7 +98,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 5), 1, true)
+                storage.move_left_single(&line_lengths, &Position::new(0, 5), 1, true)
             },
             [
                 Updated {
@@ -122,7 +122,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 5), 6, true)
+                storage.move_left_single(&line_lengths, &Position::new(0, 5), 6, true)
             },
             [
                 Updated {
@@ -147,7 +147,7 @@ mod left_single {
             ],
             storage -> {
                 let line_lengths = TestLineLengths::new();
-                storage.move_left_single(line_lengths, &Position::new(0, 15), 12, false)
+                storage.move_left_single(&line_lengths, &Position::new(0, 15), 12, false)
             },
             [
                 Updated {
@@ -173,7 +173,7 @@ mod left_single {
             storage -> {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 10);
-                storage.move_left_single(line_lengths, &Position::new(0, 10), 12, false)
+                storage.move_left_single(&line_lengths, &Position::new(0, 10), 12, false)
             },
             [
 		Deleted((0, 0) - (0, 5)),
@@ -198,7 +198,7 @@ mod left_single {
             storage -> {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 10);
-                storage.move_left_single(line_lengths, &Position::new(0, 10), 10, true)
+                storage.move_left_single(&line_lengths, &Position::new(0, 10), 10, true)
             },
             [
 		Deleted((0, 0) - (0, 5)),
@@ -229,7 +229,7 @@ mod left_single {
 		line_lengths.set(1, 10);
 		line_lengths.set(2, 10);
 		line_lengths.set(3, 10);
-                storage.move_left_single(line_lengths, &Position::new(1, 3), 69, true)
+                storage.move_left_single(&line_lengths, &Position::new(1, 3), 69, true)
 	    },
 	    [
 		Deleted((0, 0) - (0, 0)),
@@ -262,7 +262,7 @@ mod right_single {
             storage -> {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 69);
-                storage.move_right_single(line_lengths, &Position::new(0, 0), 5, false)
+                storage.move_right_single(&line_lengths, &Position::new(0, 0), 5, false)
             },
             [
                 Updated {
@@ -288,7 +288,7 @@ mod right_single {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 69);
 		line_lengths.set(1, 69);
-                storage.move_right_single(line_lengths, &Position::new(0, 1), 1, true)
+                storage.move_right_single(&line_lengths, &Position::new(0, 1), 1, true)
             },
             [
                 Updated {
@@ -315,7 +315,7 @@ mod right_single {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 30);
 		
-                storage.move_right_single(line_lengths, &Position::new(0, 0), 12, false)
+                storage.move_right_single(&line_lengths, &Position::new(0, 0), 12, false)
             },
             [
                 Updated {
@@ -343,7 +343,7 @@ mod right_single {
                 let mut line_lengths = TestLineLengths::new();
 		line_lengths.set(0, 30);
 		
-                storage.move_right_single(line_lengths, &Position::new(0, 5), 12, false)
+                storage.move_right_single(&line_lengths, &Position::new(0, 5), 12, false)
             },
             [
                 Updated {
@@ -373,7 +373,7 @@ mod right_single {
 		line_lengths.set(1, 20);
 		line_lengths.set(2, 10);
 		line_lengths.set(3, 10);
-                storage.move_right_single(line_lengths, &Position::new(0, 0), 8, false)
+                storage.move_right_single(&line_lengths, &Position::new(0, 0), 8, false)
             },
             [
                 Updated {
@@ -403,7 +403,7 @@ mod right_single {
 		line_lengths.set(1, 20);
 		line_lengths.set(2, 10);
 		line_lengths.set(3, 10);
-                storage.move_right_single(line_lengths, &Position::new(0, 10), 9, true)
+                storage.move_right_single(&line_lengths, &Position::new(0, 10), 9, true)
             },
             [
                 Updated {
@@ -437,7 +437,7 @@ mod right_single {
 		line_lengths.set(3, 20);
 		line_lengths.set(4, 20);
 		line_lengths.set(5, 40);
-                storage.move_right_single(line_lengths, &Position::new(0, 3), 420, true)
+                storage.move_right_single(&line_lengths, &Position::new(0, 3), 420, true)
             },
             [
 		Updated {

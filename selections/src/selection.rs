@@ -69,4 +69,10 @@ impl Selection {
             SelectionDirection::Backward => &self.from,
         }
     }
+
+    /// Get selections's id (a `from` component).
+    #[inline]
+    pub fn id(&self) -> &Position {
+        &self.from
+    }
 }
