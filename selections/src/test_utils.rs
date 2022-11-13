@@ -41,191 +41,207 @@
 macro_rules! selections_test {
     // Selection constructor matcher (without sticky)
     (
-	@selection
-	$anchor_line:expr, $anchor_col:expr,
-	    $cursor_line:expr, $cursor_col:expr,
+        @selection
+        $anchor_line:expr, $anchor_col:expr,
+            $cursor_line:expr, $cursor_col:expr,
     ) => {
-	$crate::Selection::new(
-	    $crate::Position::new($anchor_line, $anchor_col),
-	    $crate::Position::new($cursor_line, $cursor_col)
-	)
+        $crate::Selection::new(
+            $crate::Position::new($anchor_line, $anchor_col),
+            $crate::Position::new($cursor_line, $cursor_col)
+        )
     };
 
     // Selection constructor matcher (with sticky)
     (
-	@selection
-	$anchor_line:expr, $anchor_col:expr,
-	    $cursor_line:expr, $cursor_col:expr,
-	sticky $sticky:expr
+        @selection
+        $anchor_line:expr, $anchor_col:expr,
+            $cursor_line:expr, $cursor_col:expr,
+        sticky $sticky:expr
     ) => {
-	$crate::Selection::new(
-	    $crate::Position::new($anchor_line, $anchor_col),
-	    $crate::Position::new_with_sticky($cursor_line, $cursor_col, $sticky)
-	)
+        $crate::Selection::new(
+            $crate::Position::new($anchor_line, $anchor_col),
+            $crate::Position::new_with_sticky($cursor_line, $cursor_col, $sticky)
+        )
     };
 
     // Macro top-level representation
     (
-	[$(
-	    ($anchor_line:expr, $anchor_col:expr)
-		- ($cursor_line:expr, $cursor_col:expr)
-	    $(sticky $sticky:expr)?
-	),*$(,)?],
-	$storage:ident -> {$($body:tt)*},
-	[$($exp_deltas:tt)*],
-	[$(
-	    ($anchor_line_exp:expr, $anchor_col_exp:expr) -
-		($cursor_line_exp:expr, $cursor_col_exp:expr)
-	    $(sticky $sticky_exp:expr)?
-	),*$(,)?]$(,)?
+        [$(
+            ($anchor_line:expr, $anchor_col:expr)
+                - ($cursor_line:expr, $cursor_col:expr)
+            $(sticky $sticky:expr)?
+        ),*$(,)?],
+        $storage:ident -> {$($body:tt)*},
+        [$($exp_deltas:tt)*],
+        [$(
+            ($anchor_line_exp:expr, $anchor_col_exp:expr) -
+                ($cursor_line_exp:expr, $cursor_col_exp:expr)
+            $(sticky $sticky_exp:expr)?
+        ),*$(,)?]$(,)?
     ) => {
-	let mut $storage = $crate::SelectionStorage::new_empty();
+        let mut $storage = $crate::SelectionStorage::new_empty();
 
-	$($storage.insert(
-	    selections_test! {
-		@selection
-		$anchor_line, $anchor_col,
-		$cursor_line, $cursor_col,
-		$(sticky $sticky)?
-	    });
-	)*
+        $($storage.insert(
+            selections_test! {
+                @selection
+                $anchor_line, $anchor_col,
+                $cursor_line, $cursor_col,
+                $(sticky $sticky)?
+            });
+        )*
 
-	let deltas = { $($body)* };
-	let expected_deltas_selections = selections_test! {
-	    @deltas_selections[] $($exp_deltas)*
-	};
+        let deltas = { $($body)* };
+        let expected_deltas_selections = selections_test! {
+            @deltas_selections[] $($exp_deltas)*
+        };
 
-	selections_test! { @deltas_start deltas expected_deltas_selections $($exp_deltas)* }
+        selections_test! { @deltas_start deltas expected_deltas_selections $($exp_deltas)* }
 
-	let mut selections_iter = $storage.iter_all();
-	let expected_selections = [
-	    $(
-		selections_test! {
-		    @selection
-		    $anchor_line_exp, $anchor_col_exp,
-		    $cursor_line_exp, $cursor_col_exp,
-		    $(sticky $sticky_exp)?
-		},
-	    )*
-	];
-	for right in expected_selections.iter() {
-	    ::pretty_assertions::assert_eq!(selections_iter.next(), Some(right));
-	}
-	assert!(selections_iter.next().is_none());
+        let mut selections_iter = $storage.iter_all();
+        let expected_selections = [
+            $(
+                selections_test! {
+                    @selection
+                    $anchor_line_exp, $anchor_col_exp,
+                    $cursor_line_exp, $cursor_col_exp,
+                    $(sticky $sticky_exp)?
+                },
+            )*
+        ];
+        for right in expected_selections.iter() {
+            ::pretty_assertions::assert_eq!(selections_iter.next(), Some(right));
+        }
+        assert!(selections_iter.next().is_none());
     };
 
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Created` variant).
     (@deltas_selections [$($acc:tt)*] $(,)? Created(
-	($anchor_line:expr, $anchor_col:expr) -
-	($cursor_line:expr, $cursor_col:expr)
+        ($anchor_line:expr, $anchor_col:expr) -
+            ($cursor_line:expr, $cursor_col:expr)
+        $(sticky $sticky:expr)?
     ) $($rest:tt)*) => {
-	selections_test! { @deltas_selections [
-	    $($acc)*
-	    $crate::Selection::new(
-		$crate::Position::new($anchor_line, $anchor_col),
-		$crate::Position::new($cursor_line, $cursor_col)
-	    ),
-	] $($rest)* }
+        selections_test! { @deltas_selections [
+            $($acc)*
+            selections_test ! {
+                @selection
+                $anchor_line, $anchor_col,
+                $cursor_line, $cursor_col,
+                $($sticky)?
+            },
+        ] $($rest)* }
     };
 
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Updated` variant).
     (@deltas_selections [$($acc:tt)*] $(,)? Updated {
-	old: ($old_anchor_line:expr, $old_anchor_col:expr)
-	    - ($old_cursor_line:expr, $old_cursor_col:expr),
-	new: ($new_anchor_line:expr, $new_anchor_col:expr)
-	    - ($new_cursor_line:expr, $new_cursor_col:expr)
-	    $(,)?
+        old: ($_old_anchor_line:expr, $_old_anchor_col:expr)
+            - ($_old_cursor_line:expr, $_old_cursor_col:expr) $(sticky $_old_sticky:expr)?,
+        new: ($new_anchor_line:expr, $new_anchor_col:expr)
+            - ($new_cursor_line:expr, $new_cursor_col:expr) $(sticky $new_sticky:expr)?
+            $(,)?
     } $($rest:tt)*) => {
-	selections_test! { @deltas_selections [
-	    $($acc)*
-	    $crate::Selection::new(
-		$crate::Position::new($new_anchor_line, $new_anchor_col),
-		$crate::Position::new($new_cursor_line, $new_cursor_col)
-	    ),
-	] $($rest)* }
+        selections_test! { @deltas_selections [
+            $($acc)*
+            selections_test ! {
+                @selection
+                $new_anchor_line, $new_anchor_col,
+                $new_cursor_line, $new_cursor_col,
+                $(sticky $new_sticky)?
+            },
+        ] $($rest)* }
     };
 
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Deleted` variant we do nothing).
     (@deltas_selections [$($acc:tt)*] $(,)? Deleted(
-	($anchor_line:expr, $anchor_col:expr) -
-	($cursor_line:expr, $cursor_col:expr)
+        ($_anchor_line:expr, $_anchor_col:expr) -
+        ($_cursor_line:expr, $_cursor_col:expr)
+        $(sticky $_sticky:expr)?
     ) $($rest:tt)*) => {
-	selections_test! { @deltas_selections [
-	    $($acc)*
-	] $($rest)* }
+        selections_test! { @deltas_selections [
+            $($acc)*
+        ] $($rest)* }
     };
 
     // Finalize selections helper array builder
     (@deltas_selections [$($acc:tt)*] $(,)?) => {
-	[$($acc)*]
+        [$($acc)*]
     };
 
     // Section of deltas assertions
     (@deltas_start $deltas_ident:ident $deltas_pos:ident $($rest:tt)*) => {
-	{
-	    let mut deltas_iter = $deltas_ident.into_iter();
-	    let expected_deltas = selections_test! { @deltas_exp $deltas_pos (0) [] $($rest)* };
-	    for right in expected_deltas.into_iter() {
-		::pretty_assertions::assert_eq!(
-		    deltas_iter.next().map($crate::deltas::test_utils::DeltaWeakEq),
-		    Some($crate::deltas::test_utils::DeltaWeakEq(right))
-		);
-	    }
-	    assert!(deltas_iter.next().is_none());
-	}
+        {
+            let mut deltas_iter = $deltas_ident.into_iter();
+            let expected_deltas = selections_test! { @deltas_exp $deltas_pos (0) [] $($rest)* };
+            for right in expected_deltas.into_iter() {
+                ::pretty_assertions::assert_eq!(
+                    deltas_iter.next(),
+                    Some(right)
+                );
+            }
+            assert!(deltas_iter.next().is_none());
+        }
     };
 
     // Incremental builder of array of expected deltas (`Created` variant)
     (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Created(
-	($anchor_line:expr, $anchor_col:expr) -
-	($cursor_line:expr, $cursor_col:expr)
+        ($_anchor_line:expr, $_anchor_col:expr) -
+        ($_cursor_line:expr, $_cursor_col:expr)
+        $(sticky $_sticky:expr)?
     ) $($rest:tt)*) => {
-	selections_test! { @deltas_exp $deltas_pos ($n + 1) [
-	    $($acc)*
-	    $crate::SelectionDelta::Created(&$deltas_pos[$n]),
-	] $($rest)* }
+        selections_test! { @deltas_exp $deltas_pos ($n + 1) [
+            $($acc)*
+            $crate::SelectionDelta::Created(&$deltas_pos[$n]),
+        ] $($rest)* }
     };
 
     // Incremental builder of array of expected deltas (`Deleted` variant)
     (@deltas_exp $_deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Deleted(
-	($anchor_line:expr, $anchor_col:expr) -
-	($cursor_line:expr, $cursor_col:expr)
+        ($anchor_line:expr, $anchor_col:expr) -
+        ($cursor_line:expr, $cursor_col:expr)
+        $(sticky $sticky:expr)?
     ) $($rest:tt)* ) => {
-	selections_test! { @deltas_exp $_deltas_pos ($n) [
-	    $($acc)*
-	    $crate::SelectionDelta::Deleted($crate::Selection::new(
-		$crate::Position::new($anchor_line, $anchor_col),
-		$crate::Position::new($cursor_line, $cursor_col),
-	    )),
-	] $($rest)* }
+        selections_test! { @deltas_exp $_deltas_pos ($n) [
+            $($acc)*
+            $crate::SelectionDelta::Deleted(
+                selections_test! {
+                    @selection
+                    $anchor_line, $anchor_col,
+                    $cursor_line, $cursor_col,
+                    $(sticky $sticky)?
+                }
+            ),
+        ] $($rest)* }
     };
 
     // Incremental builder of array of expected deltas (`Updated` variant)
     (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? Updated {
-	old: ($old_anchor_line:expr, $old_anchor_col:expr)
-	    - ($old_cursor_line:expr, $old_cursor_col:expr),
-	new: ($new_anchor_line:expr, $new_anchor_col:expr)
-	    - ($new_cursor_line:expr, $new_cursor_col:expr)
-	$(,)?
+        old: ($old_anchor_line:expr, $old_anchor_col:expr)
+            - ($old_cursor_line:expr, $old_cursor_col:expr)
+            $(sticky $old_sticky:expr)?,
+        new: ($_new_anchor_line:expr, $_new_anchor_col:expr)
+            - ($_new_cursor_line:expr, $_new_cursor_col:expr)
+            $(sticky $_new_sticky:expr)?
+        $(,)?
     } $($rest:tt)* ) => {
-	selections_test! { @deltas_exp $deltas_pos ($n + 1) [
-	    $($acc)*
-	    $crate::SelectionDelta::Updated{
-		old: $crate::Selection::new(
-		    $crate::Position::new($old_anchor_line, $old_anchor_col),
-		    $crate::Position::new($old_cursor_line, $old_cursor_col),
-		),
-		new: &$deltas_pos[$n],
-	    },
-	] $($rest)* }
+        selections_test! { @deltas_exp $deltas_pos ($n + 1) [
+            $($acc)*
+            $crate::SelectionDelta::Updated{
+                old: selections_test! {
+                    @selection
+                    $old_anchor_line, $old_anchor_col,
+                    $old_cursor_line, $old_cursor_col,
+                    $(sticky $old_sticky)?
+                },
+                new: &$deltas_pos[$n],
+            },
+        ] $($rest)* }
     };
 
     // Finalize expected deltas array
     (@deltas_exp $deltas_pos:ident ($n:expr) [$($acc:tt)*] $(,)? ) => {
-	[$($acc)*]
+        [$($acc)*]
     };
 }
 
