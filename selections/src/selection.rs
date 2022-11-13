@@ -52,6 +52,12 @@ impl Selection {
         }
     }
 
+    #[cfg(test)]
+    /// Equality check but ignoring sticky columns.
+    pub(crate) fn weak_eq(&self, other: &Self) -> bool {
+        self.from.weak_eq(&other.from) && self.to.weak_eq(&other.to)
+    }
+
     /// Get selection's anchor.
     #[inline]
     pub fn anchor(&self) -> &Position {

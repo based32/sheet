@@ -3,9 +3,12 @@
 /// For better transparency it has no default selection.
 ///
 /// # Structure
-/// - First arg is initial state and represented as array of selections;
-/// - selection is pair of two positions: (anchor_line, anchor_col) -
-///   (cursor_line, cursor_col); if the cursor is before the anchor it'll mark
+/// - First arg is initial state and represented as an array of selections;
+/// - selection is pair of two positions:
+///
+///   (anchor_line, anchor_col) - (cursor_line, cursor_col)
+///
+///   if the cursor is before the anchor it'll mark
 ///   it as `backwards`.
 /// - second arg is a selection storage binding -> { code block to execture };
 ///   (must return deltas to compare next)
@@ -37,25 +40,30 @@
 macro_rules! selections_test {
     // Macro top-level representation
     (
-        [$(($left_from:expr, $left_to:expr) - ($right_from:expr, $right_to:expr)),*$(,)?],
+        [$(
+	    ($left_anchor:expr, $left_cursor:expr)
+		- ($right_anchor:expr, $right_cursor:expr)
+	),*$(,)?],
         $storage:ident -> {$($body:tt)*},
         [$($exp_deltas:tt)*],
         [$(
-            ($left_from_exp:expr, $left_to_exp:expr) -
-            ($right_from_exp:expr, $right_to_exp:expr)
+            ($left_anchor_exp:expr, $left_cursor_exp:expr) -
+            ($right_anchor_exp:expr, $right_cursor_exp:expr)
         ),*$(,)?]$(,)?
     ) => {
         let mut $storage = $crate::SelectionStorage::new_empty();
 
         $($storage.insert(
 	    $crate::Selection::new(
-		$crate::Position::new($left_from, $left_to),
-		$crate::Position::new($right_from, $right_to)
+		$crate::Position::new($left_anchor, $left_cursor),
+		$crate::Position::new($right_anchor, $right_cursor)
 	    ));
         )*
 
         let deltas = { $($body)* };
-        let expected_deltas_selections = selections_test! { @deltas_selections [] $($exp_deltas)* };
+        let expected_deltas_selections = selections_test! {
+	    @deltas_selections[] $($exp_deltas)*
+	};
 
         selections_test! { @deltas_start deltas expected_deltas_selections $($exp_deltas)* }
 
@@ -63,8 +71,8 @@ macro_rules! selections_test {
         let expected_selections = [
             $(
                 $crate::Selection::new(
-                    $crate::Position::new($left_from_exp, $left_to_exp),
-                    $crate::Position::new($right_from_exp, $right_to_exp)
+                    $crate::Position::new($left_anchor_exp, $left_cursor_exp),
+                    $crate::Position::new($right_anchor_exp, $right_cursor_exp)
                 ),
             )*
         ];
@@ -77,14 +85,14 @@ macro_rules! selections_test {
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Created` variant).
     (@deltas_selections [$($acc:tt)*] $(,)? Created(
-        ($left_from:expr, $left_to:expr) -
-        ($right_from:expr, $right_to:expr)
+        ($left_anchor:expr, $left_cursor:expr) -
+        ($right_anchor:expr, $right_cursor:expr)
     ) $($rest:tt)*) => {
         selections_test! { @deltas_selections [
             $($acc)*
             $crate::Selection::new(
-                $crate::Position::new($left_from, $left_to),
-                $crate::Position::new($right_from, $right_to)
+                $crate::Position::new($left_anchor, $left_cursor),
+                $crate::Position::new($right_anchor, $right_cursor)
             ),
         ] $($rest)* }
     };
@@ -92,15 +100,17 @@ macro_rules! selections_test {
     // Incrementally build a helper array of selections for expected deltas as some of delta
     // variants require borrowed selections (for `Updated` variant).
     (@deltas_selections [$($acc:tt)*] $(,)? Updated {
-        old: ($old_left_from:expr, $old_left_to:expr) - ($old_right_from:expr, $old_right_to:expr),
-        new: ($new_left_from:expr, $new_left_to:expr) - ($new_right_from:expr, $new_right_to:expr)
+        old: ($old_left_anchor:expr, $old_left_cursor:expr)
+	    - ($old_right_anchor:expr, $old_right_cursor:expr),
+        new: ($new_left_anchor:expr, $new_left_cursor:expr)
+	    - ($new_right_anchor:expr, $new_right_cursor:expr)
             $(,)?
     } $($rest:tt)*) => {
         selections_test! { @deltas_selections [
             $($acc)*
             $crate::Selection::new(
-                $crate::Position::new($new_left_from, $new_left_to),
-                $crate::Position::new($new_right_from, $new_right_to)
+                $crate::Position::new($new_left_anchor, $new_left_cursor),
+                $crate::Position::new($new_right_anchor, $new_right_cursor)
             ),
         ] $($rest)* }
     };
@@ -127,7 +137,10 @@ macro_rules! selections_test {
             let mut deltas_iter = $deltas_ident.into_iter();
             let expected_deltas = selections_test! { @deltas_exp $deltas_pos (0) [] $($rest)* };
             for right in expected_deltas.into_iter() {
-                ::pretty_assertions::assert_eq!(deltas_iter.next(), Some(right));
+                ::pretty_assertions::assert_eq!(
+		    deltas_iter.next().map($crate::deltas::test_utils::DeltaWeakEq),
+		    Some($crate::deltas::test_utils::DeltaWeakEq(right))
+		);
             }
             assert!(deltas_iter.next().is_none());
         }

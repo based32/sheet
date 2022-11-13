@@ -167,7 +167,7 @@ impl SelectionStorage {
             return Default::default();
         }
 
-        let Some(idx_old) = self.find_index_by_id(id) else {
+        let Some(idx_old) = self.find_index_by_id(id.into()) else {
 	    return Default::default();
 	};
 
@@ -175,8 +175,11 @@ impl SelectionStorage {
             direction.new_selection_state(&self.selections[idx_old], line_lengths, n, extend);
 
         // Find new insertion index or possible overlaps.
-        let idx_new =
-            self.find_overlapping_indicies_exlude(&selection_new.from, &selection_new.to, idx_old);
+        let idx_new = self.find_overlapping_indicies_exlude(
+            (&selection_new.from).into(),
+            (&selection_new.to).into(),
+            idx_old,
+        );
 
         let deltas = match idx_new {
             Err(idx) if idx == idx_old => {

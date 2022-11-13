@@ -4,8 +4,10 @@ mod movement;
 #[cfg(test)]
 mod test_movement;
 
+use std::cmp;
+
 /// Coordinates in a document.
-#[derive(Debug, PartialEq, Eq, Ord, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Position {
     pub(crate) line: usize,
     pub(crate) column: usize,
@@ -13,11 +15,17 @@ pub struct Position {
 }
 
 impl PartialOrd for Position {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(match self.line.cmp(&other.line) {
-            std::cmp::Ordering::Equal => self.column.cmp(&other.column),
+            cmp::Ordering::Equal => self.column.cmp(&other.column),
             other => other,
         })
+    }
+}
+
+impl Ord for Position {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.partial_cmp(&other).expect("total ordering is defined")
     }
 }
 
@@ -29,6 +37,11 @@ impl Position {
             column,
             sticky_column: None,
         }
+    }
+
+    /// Check for equality ignoring sticky column.
+    pub(crate) fn weak_eq(&self, other: &Self) -> bool {
+        self.line == other.line && self.column == other.column
     }
 
     #[cfg(test)]

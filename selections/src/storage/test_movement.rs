@@ -653,8 +653,7 @@ mod up_single {
 		line_lengths.set(3, 20);
 		line_lengths.set(4, 20);
 		line_lengths.set(5, 40);
-		let deltas = storage.move_up_single(&line_lengths, &Position::new(1, 6), 420, true);
-		deltas
+		storage.move_up_single(&line_lengths, &Position::new(1, 6), 420, true)
 	    },
 	    [
 		Deleted((0, 5) - (0, 7)),
@@ -669,6 +668,40 @@ mod up_single {
 	    [
 		(3, 7) - (0, 5),
 		(4, 20) - (5, 37),
+	    ]
+	}
+    }
+
+    #[test]
+    fn overlap_inherits_sticky_column() {
+	selections_test! {
+	    [
+		(2, 20) - (2, 10),
+		(3, 40) - (3, 15),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 5);
+		line_lengths.set(2, 30);
+		line_lengths.set(3, 50);
+
+		// Move first selection up to a shorter line to make it with sticky column:
+		storage.move_up_single(&line_lengths, &Position::new(2, 10), 1, true);
+		// Move second selection up that it will overlap with the previous one:
+		storage.move_up_single(&line_lengths, &Position::new(3, 15), 1, true);
+		// Move the only selection left up once again to see if sticky column was there:
+		let deltas = storage.move_up_single(&line_lengths, &Position::new(1, 5), 1, true);
+		deltas
+	    },
+	    [
+		Updated {
+		    old: (3, 40) - (1, 5),
+		    new: (3, 40) - (0, 10),
+		}
+	    ],
+	    [
+		(3, 40) - (0, 10),
 	    ]
 	}
     }
