@@ -4,12 +4,10 @@ mod movement;
 #[cfg(test)]
 mod test_movement;
 
-use std::mem;
-
 use super::Position;
 
 /// Selection is a pair of coordinates in a document.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Selection {
     pub(crate) from: Position,
     pub(crate) to: Position,
@@ -24,14 +22,6 @@ pub enum SelectionDirection {
     /// Means cursor is before selection
     Backward,
 }
-
-impl PartialEq for Selection {
-    fn eq(&self, other: &Self) -> bool {
-        self.from == other.from && self.to == other.to && self.direction == other.direction
-    }
-}
-
-impl Eq for Selection {}
 
 impl Default for Selection {
     fn default() -> Self {
@@ -62,6 +52,12 @@ impl Selection {
         }
     }
 
+    #[cfg(test)]
+    /// Equality check but ignoring sticky columns.
+    pub(crate) fn weak_eq(&self, other: &Self) -> bool {
+        self.from.weak_eq(&other.from) && self.to.weak_eq(&other.to)
+    }
+
     /// Get selection's anchor.
     #[inline]
     pub fn anchor(&self) -> &Position {
@@ -80,9 +76,9 @@ impl Selection {
         }
     }
 
-    /// Check if selection overlaps with another
-    fn overlaps(&self, other: &Self) -> bool {
-        (self.from >= other.from && self.from <= other.to)
-            || (self.to >= other.from && self.to <= other.to)
+    /// Get selections's id (a `from` component).
+    #[inline]
+    pub fn id(&self) -> &Position {
+        &self.from
     }
 }

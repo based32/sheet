@@ -21,7 +21,9 @@ impl SelectionStorage {
     /// selection overlaps with an existing one(s) it either will be replaced
     /// (`replace == true`) or merged (`replace == false`).
     fn insert_internal(&mut self, selection: Selection, replace: bool) -> SelectionDeltas {
-        let deltas = match self.find_overlapping_indicies(&selection.from, &selection.to) {
+        let deltas = match self
+            .find_overlapping_indicies((&selection.from).into(), (&selection.to).into())
+        {
             Ok(overlapping_indicies) => {
                 // Build selection to insert depending on `replace` parameter:
                 let selection_to_insert = if replace {

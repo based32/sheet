@@ -1,6 +1,6 @@
 //! Movement implementations for a single selection.
 
-use crate::{LineLength, Position, Selection, SelectionDirection};
+use crate::{LineLength, Position, Selection};
 
 impl Selection {
     fn move_generic(&self, extend: bool, move_fn: impl Fn(&Position) -> Position) -> Selection {

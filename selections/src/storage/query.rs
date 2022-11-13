@@ -1,39 +1,50 @@
 //! Helper functions to query [SelectionStorage] for things such as overlaps.
 
-use std::{cmp::Ordering, ops::RangeInclusive};
+use std::{borrow::Cow, cmp::Ordering, ops::RangeInclusive};
 
 use super::SelectionStorage;
-use crate::{Position, Selection};
+use crate::Position;
 
-type SelectionIndex = usize;
+pub(super) type SelectionIndex = usize;
 
-type SelectionIndexRange = RangeInclusive<SelectionIndex>;
+pub(super) type SelectionIndexRange = RangeInclusive<SelectionIndex>;
+
+/// Just like [Position], but ignoring sticky column.
+#[derive(Debug, Eq, PartialOrd, Ord)]
+pub(crate) struct PositionQuery<'a>(Cow<'a, Position>);
+
+impl PartialEq for PositionQuery<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.weak_eq(&other.0)
+    }
+}
+
+impl<'a> From<&'a Position> for PositionQuery<'a> {
+    fn from(position: &'a Position) -> Self {
+        PositionQuery(Cow::Borrowed(position))
+    }
+}
+
+impl<'a> From<Position> for PositionQuery<'a> {
+    fn from(position: Position) -> Self {
+        PositionQuery(Cow::Owned(position))
+    }
+}
 
 impl SelectionStorage {
-    /// Find the index of a Selection that includes the Position.
-    pub(crate) fn find_including_index(&self, pos: &Position) -> Option<SelectionIndex> {
-        self.selections
-            .binary_search_by(|s| {
-                if &s.from <= pos && &s.to >= pos {
-                    Ordering::Equal
-                } else {
-                    s.from.cmp(pos)
-                }
-            })
-            .ok()
-    }
-
     /// Find a Selection by its `from` component.
-    pub(crate) fn find_index_by_id(&self, from: &Position) -> Option<SelectionIndex> {
-        self.selections.binary_search_by(|s| s.from.cmp(from)).ok()
+    pub(crate) fn find_index_by_id(&self, from: PositionQuery) -> Option<SelectionIndex> {
+        self.selections
+            .binary_search_by(|s| PositionQuery::from(&s.from).cmp(&from))
+            .ok()
     }
 
     /// Find the range of indicies of Selections that overlaps with the provided
     /// one. `Err` case means no overlaps and points to insertion position.
     pub(crate) fn find_overlapping_indicies(
         &self,
-        from: &Position,
-        to: &Position,
+        from: PositionQuery,
+        to: PositionQuery,
     ) -> Result<SelectionIndexRange, SelectionIndex> {
         if self.selections.is_empty() {
             return Err(0);
@@ -42,19 +53,19 @@ impl SelectionStorage {
         // Get index of a selection that overlaps with `from`, or point at possibly
         // overlapping selection (more on that later).
         let from_idx_result = self.selections.binary_search_by(|s| {
-            if from >= &s.from && from <= &s.to {
+            if from >= PositionQuery::from(&s.from) && from <= PositionQuery::from(&s.to) {
                 Ordering::Equal
             } else {
-                s.from.cmp(&from)
+                PositionQuery::from(&s.from).cmp(&from)
             }
         });
 
         // Same as above, but for `to`.
         let to_idx_result = self.selections.binary_search_by(|s| {
-            if to >= &s.from && to <= &s.to {
+            if to >= PositionQuery::from(&s.from) && to <= PositionQuery::from(&s.to) {
                 Ordering::Equal
             } else {
-                s.to.cmp(&to)
+                PositionQuery::from(&s.to).cmp(&to)
             }
         });
 
@@ -83,8 +94,8 @@ impl SelectionStorage {
     /// one, but excluding an index provided.
     pub(crate) fn find_overlapping_indicies_exlude(
         &self,
-        from: &Position,
-        to: &Position,
+        from: PositionQuery,
+        to: PositionQuery,
         exclude: SelectionIndex,
     ) -> Result<SelectionIndexRange, SelectionIndex> {
         self.find_overlapping_indicies(from, to).and_then(|range| {
@@ -112,94 +123,94 @@ mod tests {
     use crate::Selection;
 
     #[test]
-    fn find_including_index() {
-        let storage = SelectionStorage {
-            selections: vec![
-                Selection::new(Position::new(0, 0), Position::new(1, 10)),
-                Selection::new(Position::new(1, 20), Position::new(2, 10)),
-            ],
-        };
-
-        // Should hit first selection somewhere in a middle:
-        assert_eq!(storage.find_including_index(&Position::new(0, 20)), Some(0));
-
-        // Should hit second selection somewhere in a middle:
-        assert_eq!(storage.find_including_index(&Position::new(1, 30)), Some(1));
-
-        // Should hit first selection in its end:
-        assert_eq!(storage.find_including_index(&Position::new(1, 10)), Some(0));
-
-        // Should not hit anything:
-        assert_eq!(storage.find_including_index(&Position::new(1, 11)), None);
-    }
-
-    #[test]
     fn find_overlapping_indicies() {
         let storage = SelectionStorage {
             selections: vec![
                 Selection::new(Position::new(0, 5), Position::new(1, 10)),
                 Selection::new(Position::new(1, 20), Position::new(2, 10)),
+                Selection::new(Position::new(2, 20), Position::new(4, 10)),
+                Selection::new(Position::new(4, 20), Position::new(7, 11)),
             ],
         };
 
         // Overlap on the right side:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 30),),
+            storage.find_overlapping_indicies(
+                Position::new(1, 15).into(),
+                Position::new(1, 30).into()
+            ),
             Ok(1..=1)
         );
 
         // Overlap on the left side:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(1, 16),),
+            storage
+                .find_overlapping_indicies(Position::new(1, 8).into(), Position::new(1, 16).into()),
             Ok(0..=0)
         );
 
         // Overlap on both sides:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 5), &Position::new(1, 20),),
+            storage
+                .find_overlapping_indicies(Position::new(0, 5).into(), Position::new(1, 20).into()),
             Ok(0..=1)
         );
 
         // No overlaps in between:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 15), &Position::new(1, 17),),
+            storage.find_overlapping_indicies(
+                Position::new(1, 15).into(),
+                Position::new(1, 17).into()
+            ),
             Err(1),
         );
 
         // No overlaps before selections:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(0, 3),),
+            storage
+                .find_overlapping_indicies(Position::new(0, 0).into(), Position::new(0, 3).into()),
             Err(0)
         );
 
         // No overlaps after selections:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(4, 20), &Position::new(13, 37),),
-            Err(2)
+            storage.find_overlapping_indicies(
+                Position::new(8, 12).into(),
+                Position::new(13, 37).into()
+            ),
+            Err(4)
         );
 
         // Large selection overlaps all:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 0), &Position::new(13, 37),),
-            Ok(0..=1),
+            storage.find_overlapping_indicies(
+                Position::new(0, 0).into(),
+                Position::new(13, 37).into()
+            ),
+            Ok(0..=3),
         );
 
         // Query selection absorbs another one:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 3), &Position::new(1, 15),),
+            storage
+                .find_overlapping_indicies(Position::new(0, 3).into(), Position::new(1, 15).into()),
             Ok(0..=0),
         );
 
         // Query selection will be absorbed:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(0, 7), &Position::new(0, 8),),
+            storage
+                .find_overlapping_indicies(Position::new(0, 7).into(), Position::new(0, 8).into()),
             Ok(0..=0),
         );
 
         // Overlap on the left side and then absorb on right:
         assert_eq!(
-            storage.find_overlapping_indicies(&Position::new(1, 8), &Position::new(16, 20),),
-            Ok(0..=1)
+            storage.find_overlapping_indicies(
+                Position::new(1, 8).into(),
+                Position::new(69, 69).into()
+            ),
+            Ok(0..=3)
         );
     }
 }
