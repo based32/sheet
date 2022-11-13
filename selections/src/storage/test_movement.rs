@@ -676,7 +676,7 @@ mod up_single {
     fn overlap_inherits_sticky_column() {
 	selections_test! {
 	    [
-		(2, 20) - (2, 10),
+		(2, 20) - (1, 5) sticky 10,
 		(3, 40) - (3, 15),
 	    ],
 	    storage -> {
@@ -686,13 +686,8 @@ mod up_single {
 		line_lengths.set(2, 30);
 		line_lengths.set(3, 50);
 
-		// Move first selection up to a shorter line to make it with sticky column:
-		storage.move_up_single(&line_lengths, &Position::new(2, 10), 1, true);
-		// Move second selection up that it will overlap with the previous one:
 		storage.move_up_single(&line_lengths, &Position::new(3, 15), 1, true);
-		// Move the only selection left up once again to see if sticky column was there:
-		let deltas = storage.move_up_single(&line_lengths, &Position::new(1, 5), 1, true);
-		deltas
+		storage.move_up_single(&line_lengths, &Position::new(1, 5), 1, true)
 	    },
 	    [
 		Updated {
@@ -702,6 +697,259 @@ mod up_single {
 	    ],
 	    [
 		(3, 40) - (0, 10),
+	    ]
+	}
+    }
+}
+
+#[rustfmt::skip]
+mod down_single {
+    use super::*;
+
+    #[test]
+    fn no_changes_in_order() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 0),
+		(2, 10) - (3, 2),
+		(5, 5) - (5, 6),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 69);
+		line_lengths.set(1, 69);
+		line_lengths.set(2, 69);
+		line_lengths.set(3, 69);
+		line_lengths.set(4, 69);
+		line_lengths.set(5, 69);
+		storage.move_down_single(&line_lengths, &Position::new(2, 10), 1, false)
+	    },
+	    [
+		Updated {
+		    old: (2, 10) - (3, 2),
+		    new: (4, 2) - (4, 2),
+		}
+	    ],
+	    [
+		(0, 0) - (0, 0),
+		(4, 2) - (4, 2),
+		(5, 5) - (5, 6),
+	    ]
+	};
+    }
+
+    #[test]
+    fn no_changes_in_order_last() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 0),
+		(2, 1) - (2, 0),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 69);
+		line_lengths.set(1, 69);
+		line_lengths.set(2, 69);
+		line_lengths.set(3, 69);
+		storage.move_down_single(&line_lengths, &Position::new(2, 0), 1, true)
+	    },
+	    [
+		Updated {
+		    old: (2, 1) - (2, 0),
+		    new: (2, 1) - (3, 0),
+		}
+	    ],
+	    [
+		(0, 0) - (0, 0),
+		(2, 1) - (3, 0),
+	    ]
+	};
+    }
+
+    #[test]
+    fn step_over_no_overlap() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 0),
+		(1, 5) - (1, 10),
+		(2, 15) - (2, 15),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 30);
+		line_lengths.set(1, 30);
+		line_lengths.set(2, 30);
+		line_lengths.set(3, 30);
+		storage.move_down_single(&line_lengths, &Position::new(1, 5), 2, false)
+	    },
+	    [
+		Updated {
+		    old: (1, 5) - (1, 10),
+		    new: (3, 10) - (3, 10),
+		}
+	    ],
+	    [
+		(0, 0) - (0, 0),
+		(2, 15) - (2, 15),
+		(3, 10) - (3, 10),
+	    ]
+	};
+    }
+
+    #[test]
+    fn step_over_no_overlap_last() {
+	selections_test! {
+	    [
+		(1, 5) - (1, 10),
+		(2, 15) - (2, 15),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 30);
+		line_lengths.set(1, 30);
+		line_lengths.set(2, 30);
+		line_lengths.set(3, 30);
+		line_lengths.set(4, 30);
+
+		storage.move_down_single(&line_lengths, &Position::new(1, 5), 12, false)
+	    },
+	    [
+		Updated {
+		    old: (1, 5) - (1, 10),
+		    new: (4, 10) - (4, 10),
+		}
+	    ],
+	    [
+		(2, 15) - (2, 15),
+		(4, 10) - (4, 10),
+	    ]
+	};
+    }
+
+    #[test]
+    fn overlap_one_edge_no_extend() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 5),
+		(0, 10) - (0, 15),
+		(3, 7) - (1, 13),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 10);
+		line_lengths.set(3, 10);
+		storage.move_down_single(&line_lengths, &Position::new(0, 10), 1, false)
+	    },
+	    [
+		Updated {
+		    old: (0, 10) - (0, 15),
+		    new: (1, 15) - (1, 15),
+		},
+		Deleted((3, 7) - (1, 13)),
+	    ],
+	    [
+		(0, 0) - (0, 5),
+		(1, 15) - (1, 15),
+	    ]
+	};
+    }
+
+    #[test]
+    fn overlap_one_edge_extend() {
+	selections_test! {
+	    [
+		(0, 0) - (0, 5),
+		(0, 10) - (0, 15),
+		(2, 3) - (3, 12),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 10);
+		line_lengths.set(3, 10);
+		storage.move_down_single(&line_lengths, &Position::new(0, 10), 2, true)
+	    },
+	    [
+		Updated {
+		    old: (0, 10) - (0, 15),
+		    new: (0, 10) - (3, 12),
+		},
+		Deleted((2, 3) - (3, 12)),
+	    ],
+	    [
+		(0, 0) - (0, 5),
+		(0, 10) - (3, 12),
+	    ]
+	};
+    }
+
+    #[test]
+    fn overlap_many() {
+	selections_test! {
+	    [
+		(0, 5) - (0, 7),
+		(0, 8) - (0, 12),
+		(0, 15) - (1, 2),
+		(3, 7) - (1, 6),
+		(4, 20) - (5, 37),
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 20);
+		line_lengths.set(2, 20);
+		line_lengths.set(3, 20);
+		line_lengths.set(4, 20);
+		line_lengths.set(5, 40);
+		line_lengths.set(6, 10);
+		storage.move_down_single(&line_lengths, &Position::new(0, 8), 420, true)
+	    },
+	    [
+		Updated {
+		    old: (0, 8) - (0, 12),
+		    new: (0, 8) - (6, 10),
+		},
+		Deleted((0, 15) - (1, 2)),
+		Deleted((3, 7) - (1, 6)),
+		Deleted((4, 20) - (5, 37)),
+	    ],
+	    [
+		(0, 5) - (0, 7),
+		(0, 8) - (6, 10) sticky 12,
+	    ]
+	}
+    }
+
+    #[test]
+    fn overlap_inherits_sticky_column() {
+	selections_test! {
+	    [
+		(2, 20) - (2, 10),
+		(3, 8) - (4, 20) sticky 25,
+	    ],
+	    storage -> {
+		let mut line_lengths = TestLineLengths::new();
+		line_lengths.set(0, 20);
+		line_lengths.set(1, 5);
+		line_lengths.set(2, 30);
+		line_lengths.set(3, 50);
+		line_lengths.set(4, 20);
+		line_lengths.set(5, 30);
+
+		storage.move_down_single(&line_lengths, &Position::new(2, 10), 1, true);
+		storage.move_down_single(&line_lengths, &Position::new(2, 20), 1, true)
+	    },
+	    [
+		Updated {
+		    old: (2, 20) - (4, 20),
+		    new: (2, 20) - (5, 25),
+		}
+	    ],
+	    [
+		(2, 20) - (5, 25),
 	    ]
 	}
     }
