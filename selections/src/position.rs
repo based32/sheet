@@ -25,7 +25,7 @@ impl PartialOrd for Position {
 
 impl Ord for Position {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        self.partial_cmp(&other).expect("total ordering is defined")
+        self.partial_cmp(other).expect("total ordering is defined")
     }
 }
 

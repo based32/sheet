@@ -43,11 +43,9 @@ impl<T> UniqueSortedVec<T> {
             // If order is maintained just put value in the end
             self.vec.push(value);
         } else {
-            match self.vec.binary_search(&value) {
-                Err(insert_idx) => self.vec.insert(insert_idx, value),
-                Ok(_) => {
-                    // Already present, do nothing
-                }
+            // If found, do nothing:
+            if let Err(insert_idx) = self.vec.binary_search(&value) {
+                self.vec.insert(insert_idx, value);
             }
         }
     }

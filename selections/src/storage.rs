@@ -42,3 +42,9 @@ impl SelectionStorage {
             .all(|w| w[0].to < w[1].from)
     }
 }
+
+impl Default for SelectionStorage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
