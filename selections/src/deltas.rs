@@ -21,7 +21,10 @@ pub enum SelectionDelta<'a> {
 
 impl PartialOrd for SelectionDelta<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
-        match self.from_pos().partial_cmp(&other.from_pos()) {
+        match self
+            .get_from_position()
+            .partial_cmp(other.get_from_position())
+        {
             Some(std::cmp::Ordering::Equal) => {
                 if matches!(self, SelectionDelta::Deleted(_)) {
                     Some(std::cmp::Ordering::Less)
@@ -42,7 +45,7 @@ impl Ord for SelectionDelta<'_> {
 
 impl SelectionDelta<'_> {
     /// Shortcut to get `from` coordinate required for comparison
-    fn from_pos(&self) -> &Position {
+    fn get_from_position(&self) -> &Position {
         match self {
             SelectionDelta::Created(Selection { from, .. }) => from,
             SelectionDelta::Deleted(s) | SelectionDelta::Updated { old: s, .. } => &s.from,
@@ -93,40 +96,15 @@ impl<'a> SelectionDeltas<'a> {
     pub(crate) fn push_updated(&mut self, old: Selection, new: &'a Selection) {
         self.deltas.push(SelectionDelta::Updated { old, new });
     }
+}
+
+impl<'a> IntoIterator for SelectionDeltas<'a> {
+    type IntoIter = vec::IntoIter<SelectionDelta<'a>>;
+    type Item = SelectionDelta<'a>;
 
     /// Returns iterator over selection deltas keeping their order (in case of
     /// `Updated` it will order by its old state)
-    pub fn into_iter(self) -> vec::IntoIter<SelectionDelta<'a>> {
+    fn into_iter(self) -> Self::IntoIter {
         self.deltas.take().into_iter()
-    }
-}
-
-#[cfg(test)]
-pub(crate) mod test_utils {
-    use super::*;
-
-    /// [SelectionDelta] wrapper to compare delta without sticky columns taken
-    /// into account.
-    #[derive(Debug)]
-    pub(crate) struct DeltaWeakEq<'a>(pub(crate) SelectionDelta<'a>);
-
-    impl PartialEq for DeltaWeakEq<'_> {
-        fn eq(&self, other: &Self) -> bool {
-            match (&self.0, &other.0) {
-                (SelectionDelta::Created(s1), SelectionDelta::Created(s2)) => s1.weak_eq(s2),
-                (SelectionDelta::Deleted(s1), SelectionDelta::Deleted(s2)) => s1.weak_eq(s2),
-                (
-                    SelectionDelta::Updated {
-                        old: s1_old,
-                        new: s1_new,
-                    },
-                    SelectionDelta::Updated {
-                        old: s2_old,
-                        new: s2_new,
-                    },
-                ) => s1_old.weak_eq(s2_old) && s1_new.weak_eq(s2_new),
-                _ => false,
-            }
-        }
     }
 }

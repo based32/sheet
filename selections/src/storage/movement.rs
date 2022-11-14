@@ -57,7 +57,7 @@ impl MovementDirection {
     /// decremented in case of movement towards buffer end.
     fn fix_step_over_rotation(
         &self,
-        selections: &mut Vec<Selection>,
+        selections: &mut [Selection],
         old_index: SelectionIndex,
         new_index: SelectionIndex,
     ) {
@@ -71,7 +71,7 @@ impl MovementDirection {
     /// Extends new selections in case of overlap by it's edge.
     fn fix_extend_overlap(
         &self,
-        selections: &Vec<Selection>,
+        selections: &[Selection],
         overlap_indicies: SelectionIndexRange,
         new_selection: &mut Selection,
     ) {
@@ -82,10 +82,8 @@ impl MovementDirection {
             if selections[start_idx].from < new_selection.from {
                 new_selection.from = selections[start_idx].from.clone();
             }
-        } else {
-            if selections[end_idx].to > new_selection.to {
-                new_selection.to = selections[end_idx].to.clone();
-            }
+        } else if selections[end_idx].to > new_selection.to {
+            new_selection.to = selections[end_idx].to.clone();
         }
     }
 
