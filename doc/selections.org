@@ -84,7 +84,7 @@ it's place falls into one of four categories:
 
 *** Note on ~LineLength~ trait
 
-**** `get_len`
+**** ~get_len~
 
 As listed in the previous paragraph there are be multiple kinds of positions, some of them
 point to a line end, but line end might be a newline symbol or not. For the sake of
@@ -93,7 +93,7 @@ of newline symbol. For example, an empty buffer has a length of 0 for it's 0-ind
 a buffer of two empty lines has lengths of 0 for each of them even it's 0-indexed line
 has a newline symbol and the last line has nothing in it, but still can have a cursor on it.
 
-**** `lines_count`
+**** ~lines_count~
 
 For an empty buffer lines count is 1 because 0-indexed line has a length (equals zero) and
 will have a cursor on it, so must be addressable and counted in total lines count.
@@ -105,16 +105,9 @@ case if cursor's column index is greater than line length on vertical movement i
 its place on the line's end, but on subsequent vertical movements it should try to retrieve
 it's original column position if possible until it's dropped by horizontal movement.
 
-* Batch operations
+* TODO Batch operations
 
-~SelectionStorage~ supports application of multiple operations at once. Provided batch will be
-reordered as follows:
-
-1. Insertion
-2. Movement (that means in case of collision inserted selection may not be listed at deltas at all,
-   because there are no changes to selection storage regarding it)
-3. Deletion (no matter if insertions or movements had place, it will be deleted if there is an
-   operation in a batch for it).
+~SelectionStorage~ supports application of multiple operations at once.
 
 
 * Implementation details

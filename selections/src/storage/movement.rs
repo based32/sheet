@@ -50,11 +50,11 @@ impl MovementDirection {
     /// The difference between left and right movement is that right border of
     /// rotation during left movement was an index of actual selection (previous
     /// state), but in case of right rotation right border is found via
-    /// [Self::find_overlapping_indicies_exlude] which points to insertion
-    /// position, which is the index of selection to insert _before_ it (or
-    /// may be out of bounds if insertion should happen to the vector's
-    /// end), so that means actual selection index for right border is
-    /// decremented in case of movement towards buffer end.
+    /// [SelectionStorage::find_overlapping_indicies_exlude] which points to
+    /// insertion position, which is the index of selection to insert
+    /// _before_ it (or may be out of bounds if insertion should happen to
+    /// the vector's end), so that means actual selection index for right
+    /// border is decremented in case of movement towards buffer end.
     fn fix_step_over_rotation(
         &self,
         selections: &mut [Selection],
@@ -88,8 +88,8 @@ impl MovementDirection {
     }
 
     /// New index for a selection after rotation depends on movement direction.
-    /// As described in [fix_step_over_rotation] docs, movement towards buffer
-    /// ends requires index decrement.
+    /// As described in [Self::fix_step_over_rotation] docs, movement towards
+    /// buffer ends requires index decrement.
     fn get_final_new_index(&self, idx: SelectionIndex) -> SelectionIndex {
         if self.is_towards_beginning() {
             idx

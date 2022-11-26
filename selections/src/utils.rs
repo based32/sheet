@@ -35,6 +35,7 @@ impl<T> UniqueSortedVec<T> {
         }
     }
 
+    /// Pushes new element to [UniqueSortedVec] maintaining its order.
     pub(crate) fn push(&mut self, value: T)
     where
         T: Ord,
@@ -43,11 +44,30 @@ impl<T> UniqueSortedVec<T> {
             // If order is maintained just put value in the end
             self.vec.push(value);
         } else {
-            // If found, do nothing:
+            // If found (`Ok`), then do nothing, otherwise (`Err`) do insertion in
+            // appropriate position:
             if let Err(insert_idx) = self.vec.binary_search(&value) {
                 self.vec.insert(insert_idx, value);
             }
         }
+    }
+
+    /// Builds [UniqueSortedvec] from iterator holding necessary properties.
+    pub(crate) fn from_iter(iter: impl Iterator<Item = T>) -> Self
+    where
+        T: Ord,
+    {
+        let mut vec: Vec<_> = iter.collect();
+        vec.sort_unstable();
+        let ok_indexes: Vec<_> = vec.windows(2).map(|w| w[0] != w[1]).collect();
+        let mut ok_indexes_iter = ok_indexes.into_iter().chain(std::iter::once(true));
+        vec.retain(|_| {
+            ok_indexes_iter
+                .next()
+                .expect("`ok_indexes` length is known")
+        });
+
+        UniqueSortedVec { vec }
     }
 
     pub(crate) fn take(self) -> Vec<T> {
@@ -73,5 +93,13 @@ mod tests {
         vec.push(4);
 
         assert_eq!(vec.as_slice(), &[1, 3, 4, 5, 6, 7]);
+    }
+
+    #[test]
+    fn from_iter() {
+        let test = [8, 1, 3, 3, 7, 4, 2, 0, 8, 3, 2, 2, 8];
+        let vec = UniqueSortedVec::from_iter(test.into_iter());
+        dbg!(&vec);
+        assert_eq!(vec.as_slice(), &[0, 1, 2, 3, 4, 7, 8]);
     }
 }

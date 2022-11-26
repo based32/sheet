@@ -96,6 +96,13 @@ impl<'a> SelectionDeltas<'a> {
     pub(crate) fn push_updated(&mut self, old: Selection, new: &'a Selection) {
         self.deltas.push(SelectionDelta::Updated { old, new });
     }
+
+    /// Builds [SelectionDeltas] from iterator maintaining delta's order.
+    pub(crate) fn from_iter(iter: impl Iterator<Item = SelectionDelta<'a>>) -> Self {
+        SelectionDeltas {
+            deltas: UniqueSortedVec::from_iter(iter),
+        }
+    }
 }
 
 impl<'a> IntoIterator for SelectionDeltas<'a> {

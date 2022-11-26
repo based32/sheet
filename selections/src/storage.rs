@@ -5,7 +5,7 @@ mod insert;
 mod movement;
 mod query;
 #[cfg(test)]
-mod test_movement;
+mod test_movement_single;
 
 use super::*;
 
