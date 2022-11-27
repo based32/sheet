@@ -110,7 +110,7 @@ impl SelectionStorage {
         n: usize,
         extend: bool,
     ) -> SelectionDeltas {
-        self.move_common(MovementDirection::Left, line_lengths, id, n, extend)
+        self.move_common_single(MovementDirection::Left, line_lengths, id, n, extend)
     }
 
     /// Moves a selection identified by `id` (its `from` component) on `n`
@@ -123,7 +123,7 @@ impl SelectionStorage {
         n: usize,
         extend: bool,
     ) -> SelectionDeltas {
-        self.move_common(MovementDirection::Right, line_lengths, id, n, extend)
+        self.move_common_single(MovementDirection::Right, line_lengths, id, n, extend)
     }
 
     /// Moves a selection identified by `id` (its `from` component) on `n`
@@ -136,7 +136,7 @@ impl SelectionStorage {
         n: usize,
         extend: bool,
     ) -> SelectionDeltas {
-        self.move_common(MovementDirection::Up, line_lengths, id, n, extend)
+        self.move_common_single(MovementDirection::Up, line_lengths, id, n, extend)
     }
 
     /// Moves a selection identified by `id` (its `from` component) on `n`
@@ -149,11 +149,11 @@ impl SelectionStorage {
         n: usize,
         extend: bool,
     ) -> SelectionDeltas {
-        self.move_common(MovementDirection::Down, line_lengths, id, n, extend)
+        self.move_common_single(MovementDirection::Down, line_lengths, id, n, extend)
     }
 
-    /// Common logic for movement.
-    fn move_common(
+    /// Common logic for movement of a single selection.
+    fn move_common_single(
         &mut self,
         direction: MovementDirection,
         line_lengths: &impl LineLength,
