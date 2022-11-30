@@ -105,9 +105,28 @@ case if cursor's column index is greater than line length on vertical movement i
 its place on the line's end, but on subsequent vertical movements it should try to retrieve
 it's original column position if possible until it's dropped by horizontal movement.
 
-* TODO Batch operations
+*  Batch operations
 
-~SelectionStorage~ supports application of multiple operations at once.
+~SelectionStorage~ supports application of multiple operations at once. For insertion only ~Selection~
+to insert is needed, for deletion and movements ~SelectionQuery~ is required: can either specify exact
+selection id's or a range of them.
+
+A batch may consist of:
+
+1. Deletion of many selections picked by ~SelectionQuery~
+2. Insertion of many selections
+3. Movement of many selections picked by ~SelectionQuery~ in *one* direction
+
+Order of how ~SelectionsComandsBatch~ is built doesn't matter and the final result of batch
+application is determinted by a set of following rules:
+
+1. Deletions applied first
+2. Movement applied second
+3. Movement of multiple selections with ~extend~ flag towards buffer end (right movement or down
+   movement) in case of collision treats a selection with less ~from~ coordinate as an absorber, in
+   case of movement towards buffer beginning (left movement or up movement) the opposite is correct:
+   a selection with greater ~from~ coordinate is an absorber
+4. Insertion applied last
 
 
 * Implementation details
