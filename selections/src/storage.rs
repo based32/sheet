@@ -8,6 +8,8 @@ mod query;
 #[cfg(test)]
 mod test_movement_single;
 
+pub use self::batch::{SelectionCommandsBatch, SelectionsQuery, MovementDirection};
+
 use super::*;
 
 /// Multiselection storage.
@@ -41,6 +43,11 @@ impl SelectionStorage {
             .as_slice()
             .windows(2)
             .all(|w| w[0].to < w[1].from)
+    }
+
+    /// Apply batch of operations to the selection storage.
+    pub fn apply_batch<R, I>(&mut self, batch: SelectionCommandsBatch<R, I>) -> SelectionDeltas {
+        todo!()
     }
 }
 
