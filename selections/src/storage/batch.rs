@@ -4,18 +4,18 @@ use crate::{Position, Selection};
 
 /// Batch allows to apply multiple operations simultaneously for the selection storage.
 pub struct SelectionCommandsBatch<R, I> {
-    to_delete: Option<SelectionsQuery<R, I>>,
-    to_move: Option<MoveCommand<R, I>>,
-    to_insert: Vec<Selection>,
+    pub(crate) to_delete: Option<SelectionsQuery<R, I>>,
+    pub(crate) to_move: Option<MoveCommand<R, I>>,
+    pub(crate) to_insert: Vec<Selection>,
 }
 
-struct MoveCommand<R, I> {
+pub(crate) struct MoveCommand<R, I> {
     query: SelectionsQuery<R, I>,
     direction: MovementDirection,
     extending: bool,
 }
 
-struct InsertCommand {
+pub(crate) struct InsertCommand {
     selection: Selection,
     replacing: bool,
 }

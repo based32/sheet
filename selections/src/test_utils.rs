@@ -91,7 +91,7 @@ macro_rules! selections_test {
         )*
 
         let deltas = { $($body)* };
-        let expected_deltas_selections = selections_test! {
+        let expected_deltas_selections: ::std::vec::Vec<$crate::Selection> = selections_test! {
             @deltas_selections[] $($exp_deltas)*
         };
 
@@ -166,7 +166,7 @@ macro_rules! selections_test {
 
     // Finalize selections helper array builder
     (@deltas_selections [$($acc:tt)*] $(,)?) => {
-        [$($acc)*]
+        vec![$($acc)*]
     };
 
     // Section of deltas assertions
