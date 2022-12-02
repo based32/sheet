@@ -48,11 +48,25 @@ impl SelectionStorage {
     }
 
     /// Apply batch of operations to the selection storage.
-    pub fn apply_batch<R, I>(&mut self, batch: SelectionCommandsBatch<R, I>) -> SelectionDeltas {
+    pub fn apply_batch<'a, R, I>(&mut self, batch: SelectionCommandsBatch<R, I>) -> SelectionDeltas
+    where
+        I: Iterator<Item = &'a Position>,
+    {
+        // TODO do something more clever
+        
+        let mut deltas_vec = Vec::new();
+
         if let Some(to_delete) = batch.to_delete {
-            
+            match to_delete {
+                SelectionsQuery::Exact(iter) => {
+                    for id in iter {
+                        deltas_vec.extend(self.delete_internal(id).into_iter());
+                    }
+                }
+                SelectionsQuery::Range(range) => {}
+            }
         }
-        todo!()
+        SelectionDeltas::from_iter(deltas_vec.into_iter())
     }
 }
 
