@@ -13,7 +13,7 @@ mod utils;
 pub use deltas::{SelectionDelta, SelectionDeltas};
 pub use position::Position;
 pub use selection::{Selection, SelectionDirection};
-pub use storage::{MovementDirection, SelectionCommandsBatch, SelectionStorage, SelectionsQuery};
+pub use storage::{MovementDirection, SelectionCommandsBatch, SelectionStorage};
 
 /// Source of line lengthes for a buffer.
 pub trait LineLength {

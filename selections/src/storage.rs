@@ -9,7 +9,8 @@ mod query;
 #[cfg(test)]
 mod test_movement_single;
 
-pub use self::batch::{MovementDirection, SelectionCommandsBatch, SelectionsQuery};
+use self::batch::{InsertCommand, MoveCommand};
+pub use self::batch::{MovementDirection, SelectionCommandsBatch};
 
 use super::*;
 
@@ -48,24 +49,42 @@ impl SelectionStorage {
     }
 
     /// Apply batch of operations to the selection storage.
-    pub fn apply_batch<'a, R, I>(&mut self, batch: SelectionCommandsBatch<R, I>) -> SelectionDeltas
+    pub fn apply_batch<'a, R, I>(&mut self, batch: SelectionCommandsBatch<I>) -> SelectionDeltas
     where
-        I: Iterator<Item = &'a Position>,
+        I: IntoIterator<Item = &'a Position>,
     {
         // TODO do something more clever
-        
+
         let mut deltas_vec = Vec::new();
 
         if let Some(to_delete) = batch.to_delete {
-            match to_delete {
-                SelectionsQuery::Exact(iter) => {
-                    for id in iter {
-                        deltas_vec.extend(self.delete_internal(id).into_iter());
-                    }
-                }
-                SelectionsQuery::Range(range) => {}
+            for id in to_delete {
+                deltas_vec.extend(self.delete_internal(id).into_iter());
             }
         }
+
+        if let Some(MoveCommand {
+            query,
+            direction,
+            extending,
+        }) = batch.to_move
+        {
+            // plan for movement:
+            // 1. If moving towards buffer end then start processing from the last one
+            // 2. Deleted selections add to deltas
+            // 3. Updated old states put into temp
+            // 4. Updated new states put into temp as ids
+        }
+
+        for insert in batch.to_insert {
+            // plan for insertion:
+            // 1. Put overwritten into deltas
+            // 2. Remove it from updated temp
+            // 3. Keep inserted ids in a separate temp
+        }
+
+        // Add to deltas from updated temp and inserted temp
+
         SelectionDeltas::from_iter(deltas_vec.into_iter())
     }
 }

@@ -1,31 +1,21 @@
-use std::ops::RangeBounds;
-
-use crate::{Position, Selection};
+use crate::Selection;
 
 /// Batch allows to apply multiple operations simultaneously for the selection storage.
-pub struct SelectionCommandsBatch<R, I> {
-    pub(crate) to_delete: Option<SelectionsQuery<R, I>>,
-    pub(crate) to_move: Option<MoveCommand<R, I>>,
-    pub(crate) to_insert: Vec<Selection>,
+pub struct SelectionCommandsBatch<I> {
+    pub(crate) to_delete: Option<I>,
+    pub(crate) to_move: Option<MoveCommand<I>>,
+    pub(crate) to_insert: Vec<InsertCommand>,
 }
 
-pub(crate) struct MoveCommand<R, I> {
-    query: SelectionsQuery<R, I>,
-    direction: MovementDirection,
-    extending: bool,
+pub(crate) struct MoveCommand<I> {
+    pub(crate) query: I,
+    pub(crate) direction: MovementDirection,
+    pub(crate) extending: bool,
 }
 
 pub(crate) struct InsertCommand {
     selection: Selection,
     replacing: bool,
-}
-
-/// Allows to be more specific about what selections to apply operations
-pub enum SelectionsQuery<R, I> {
-    /// A range of selections
-    Range(R),
-    /// An iterator if selection ids
-    Exact(I),
 }
 
 /// Possible movement directions for a two dimensional text editor
